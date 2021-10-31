@@ -1,0 +1,2 @@
+class MatchStats:
+    time: str

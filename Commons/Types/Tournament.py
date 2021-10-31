@@ -1,0 +1,2 @@
+class Tournament:
+    date: str

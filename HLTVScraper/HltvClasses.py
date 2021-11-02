@@ -1,3 +1,3 @@
 HltvClasses = {
-    
+    teams: "matchTeams"
 }

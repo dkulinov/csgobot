@@ -60,7 +60,19 @@ class TeamDict:
             "es":                10948,
             "triumph":           10304,
             "mythic":            5479,
-
+            "pain":              4773,
+            "teamone":           6947,
+            "9z":                9996,
+            "sharks":            8113,
+            "00nation":          11309,
+            "mibr":              9215,
+            "anonymo":           10973,
+            "endpoint":          7234,
+            "ldlc":              4674,
+            "k23":               7244,
+            "singularity":       6978,
+            "tyloo":             4863,
+            "renegades":         6211
         }
 
     def getTeamId(self, team: str):

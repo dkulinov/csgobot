@@ -1,7 +1,7 @@
 class TeamDict:
 
     def __init__(self):
-        Teams = {
+        self.inputTeams = {
             "natus-vincere":     4608,
             "natus vincere":     4608,
             "navi":              4608,
@@ -76,4 +76,4 @@ class TeamDict:
         }
 
     def getTeamId(self, team: str):
-        return self.Teams[team]
+        return self.inputTeams[team]

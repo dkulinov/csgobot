@@ -1,4 +1,4 @@
-class TeamDict:
+class HLTVTeams:
 
     def __init__(self):
         self.HLTV_teams = {
@@ -55,3 +55,6 @@ class TeamDict:
 
     def getTeamId(self, team: str):
         return self.inputTeams[team]
+
+    def getIsValid(self, team: str):
+        return team in self.HLTV_teams.keys()

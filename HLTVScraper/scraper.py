@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as soup
 from urllib.request import Request, urlopen
 from Commons.Types.MatchType import MatchType
 from Commons.Types.Match import Match
-from Commons.Types.Team import Team
+from Commons.Types.Team import HLTVTeams
 from Commons.Types.MatchStats import MatchStats
 
 baseUrl = "https://www.hltv.org/"

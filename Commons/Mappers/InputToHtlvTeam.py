@@ -7,7 +7,7 @@ def mapInputToCorrectHltvTeam(inputTeam: str) -> str:
         raise InvalidTeamException("This team isn't part of the valid inputs.")
 
     lowerCaseInputTeam = inputTeam.strip().lower().replace(" ", "-")
-    hltvTeamName = ""
+    hltvTeamName = lowerCaseInputTeam
     if lowerCaseInputTeam == "navi":
         hltvTeamName = "natus-vincere"
     elif lowerCaseInputTeam in ["cph-flames", "cph flames"]:
@@ -28,8 +28,6 @@ def mapInputToCorrectHltvTeam(inputTeam: str) -> str:
         hltvTeamName = "bad-news-bears"
     elif lowerCaseInputTeam == "es":
         hltvTeamName = "extra-salt"
-    else:
-        hltvTeamName = lowerCaseInputTeam
 
     if not HLTVTeams.getIsValid(hltvTeamName):
         raise InvalidTeamException("This team isn't part of the supported HLTV teams")

@@ -11,11 +11,11 @@ headers = {
 }
 
 
-def getUpcomingMatches(predefinedFilter: MatchType, team: Team = None) -> [Match]:
-    if team is None:
-        req = Request(baseUrl + "matches", headers=headers)
-    else:
-        # find match by team
+def getUpcomingMatches(predefinedFilter: str = MatchType.TopTier) -> [Match]:
+    url = baseUrl + "matches"
+    url += "?predefinedFilter=" if predefinedFilter == MatchType.Default else ""
+    url += predefinedFilter
+    req = Request(url, headers=headers)
     res = urlopen(req)
     html = res.read()
 
@@ -25,6 +25,9 @@ def getUpcomingMatches(predefinedFilter: MatchType, team: Team = None) -> [Match
         print("\nMatch: ", match)
 
     return [Match()]
+
+def getUpcomingMatchesByTeam(team: str) -> [Match]:
+    pass
 #
 # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:
 #     return [Match()]

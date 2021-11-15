@@ -11,23 +11,29 @@ headers = {
 }
 
 
-def getUpcomingMatches(predefinedFilter: str = MatchType.TopTier) -> [Match]:
+def getUpcomingMatches(predefinedFilter: MatchType = MatchType.TopTier) -> [Match]:
     url = baseUrl + "matches"
-    url += "?predefinedFilter=" if predefinedFilter == MatchType.Default else ""
-    url += predefinedFilter
+    url += "?predefinedFilter=" if predefinedFilter != MatchType.Default else ""
+    url += predefinedFilter.value
+    print(url)
     req = Request(url, headers=headers)
     res = urlopen(req)
     html = res.read()
 
     theSoup = soup(html, "html.parser")
-    matches = theSoup.find_all(class_='matchTeams')
-    for match in matches:
-        print("\nMatch: ", match)
+    team1s = theSoup.find_all(class_='team1')
+    team2s = theSoup.find_all(class_='team2')
+    numMatches = len(team1s)
+    for i in range(numMatches):
+        print("\nMatch: " + team1s[i].get_text().strip() + " vs " + team2s[i].get_text().strip())
 
     return [Match()]
 
+
 def getUpcomingMatchesByTeam(team: str) -> [Match]:
     pass
+
+
 #
 # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:
 #     return [Match()]
@@ -37,3 +43,5 @@ def getUpcomingMatchesByTeam(team: str) -> [Match]:
 #
 # def getStats(team1, team2) -> MatchStats:
 #     return MatchStats()
+
+getUpcomingMatches()

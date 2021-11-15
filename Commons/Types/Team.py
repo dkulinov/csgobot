@@ -2,12 +2,12 @@ class HLTVTeams:
 
     def __init__(self):
         self.HLTV_teams = {
-            "natus-vincere":     4608
+            "natus-vincere":     4608,
             "gambit":            6651,
             "g2":                5995,
             "heroic":            7175,
             "furia":             8297,
-            "copenhagen-flames": 7461
+            "copenhagen-flames": 7461,
             "vitality":          9565,
             "faze":              6667,
             "mouz":              4494,

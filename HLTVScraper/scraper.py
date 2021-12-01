@@ -4,6 +4,8 @@ from Commons.Types.MatchType import MatchType
 from Commons.Types.Match import Match
 from Commons.Types.Team import HLTVTeams
 from Commons.Types.MatchStats import MatchStats
+from Commons.Exceptions.InvalidTeamException import InvalidTeamException
+from Commons.Mappers.InputToHtlvTeam import mapInputToCorrectHltvTeam
 
 baseUrl = "https://www.hltv.org/"
 headers = {
@@ -31,6 +33,10 @@ def getUpcomingMatches(predefinedFilter: MatchType = MatchType.TopTier) -> [Matc
 
 
 def getUpcomingMatchesByTeam(team: str) -> [Match]:
+    try:
+        validTeam = mapInputToCorrectHltvTeam(team)
+    except InvalidTeamException as err:
+        return str(err)
     pass
 
 

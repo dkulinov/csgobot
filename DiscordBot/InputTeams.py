@@ -72,8 +72,9 @@ class InputTeams:
             "k23",
             "singularity",
             "tyloo",
-            "renegades"
+            "renegades",
+            "eternal fire"
         }
 
     def getIsValid(self, team: str):
-        return team in self.validInputTeamsKJ0
+        return team in self.validInputTeams

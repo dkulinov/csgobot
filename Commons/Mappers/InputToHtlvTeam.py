@@ -1,6 +1,6 @@
 from DiscordBot.InputTeams import InputTeams
-from ..Types.Team import HLTVTeams
-from ..Exceptions.InvalidTeamException import InvalidTeamException
+from Commons.Types.Team import HLTVTeams
+from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 
 def mapInputToCorrectHltvTeam(inputTeam: str) -> str:
     if not InputTeams.getIsValid(inputTeam):

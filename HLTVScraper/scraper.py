@@ -27,6 +27,9 @@ def getUpcomingMatches(predefinedFilter: MatchType = MatchType.TopTier) -> [Matc
     dateClassname = matchesByDay.div.get('data-zonedgrouping-headline-classes')
     print(sectionClassname)
     print(dateClassname)
+    liveMatch = "liveMatch"
+    for liveMatch in theSoup.find_all(class_=liveMatch):
+        print(liveMatch)
     # print(matchesByDay)
     # team1s = theSoup.find_all(class_='team1')
     # team2s = theSoup.find_all(class_='team2')
@@ -47,8 +50,10 @@ def getUpcomingMatchesByTeam(team: str) -> [Match]:
         return str(err)
     pass
 
+
 def getUpcomingMatchesByDay(day: str) -> [Match]:
     pass
+
 
 # by day and by team
 # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:

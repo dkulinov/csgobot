@@ -1,9 +1,7 @@
 from bs4 import BeautifulSoup as soup
 from urllib.request import Request, urlopen
 from Commons.Types.MatchType import MatchType
-from Commons.Types.Match import Match
-from Commons.Types.Team import HLTVTeams
-from Commons.Types.MatchStats import MatchStats
+from Commons.Types.Match.Match import Match
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 from Commons.Mappers.InputToHtlvTeam import mapInputToCorrectHltvTeam
 
@@ -25,11 +23,8 @@ def getUpcomingMatches(predefinedFilter: MatchType = MatchType.TopTier) -> [Matc
     matchesByDay = theSoup.find(class_='upcomingMatchesContainer')
     sectionClassname = matchesByDay.div.get('data-zonedgrouping-group-classes')
     dateClassname = matchesByDay.div.get('data-zonedgrouping-headline-classes')
-    print(sectionClassname)
-    print(dateClassname)
-    liveMatch = "liveMatch"
-    for liveMatch in theSoup.find_all(class_=liveMatch):
-        print(liveMatch)
+    for teamName in theSoup.find_all(class_="matchTeamName"):
+        print(teamName.getText())
     # print(matchesByDay)
     # team1s = theSoup.find_all(class_='team1')
     # team2s = theSoup.find_all(class_='team2')

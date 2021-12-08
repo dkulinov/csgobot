@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup as soup
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
+from Commons.Types.Match.PastMatch import PastMatch
 
 # CONVERT TO A FACTORY WHICH TAKES IN CONTAINER AND CREATES A PAST/CU/FUTURE MATCH
 class Decipherer:
@@ -13,7 +14,6 @@ class Decipherer:
             raise TypeError('Was not able to decipher the given div')
 
     def getTeams(self, container: soup.element.Tag) -> [str]:
-        self.validateContainer(container)
         teamNames = []
         teams = container.find_all(class_="matchTeamName")
         for team in teams:
@@ -21,7 +21,6 @@ class Decipherer:
         return teamNames
 
     def getLinkToGame(self, container: soup.element.Tag) -> str:
-        self.validateContainer(container)
         hltvHomePage = "https://www.hltv.org"
         gameLink = hltvHomePage + container.a.get('href')
         return gameLink

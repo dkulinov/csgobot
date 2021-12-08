@@ -9,3 +9,5 @@ class MatchDetails(Enum):
     cuMapScore = "mapScore"  # need to go inside this span to get map score
     resultTeam = "team"
     resultScores = "result-score"
+    logo = "matchTeamLogo"
+    resultLogo = "team-logo"

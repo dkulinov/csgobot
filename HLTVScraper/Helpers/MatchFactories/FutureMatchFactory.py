@@ -26,3 +26,6 @@ class FutureMatchFactory(AbstractMatchFactory):
 
     def getTime(self, container: soup.element.Tag):
         pass
+
+    def getTeamLogos(self, container: soup.element.Tag) -> [str]:
+        pass

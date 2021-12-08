@@ -9,9 +9,6 @@ class AbstractMatchFactory:
     def validateContainer(self, container: soup.element.Tag):
         pass
 
-    def getTeamLogos(self, container: soup.element.Tag) -> [str]:
-        pass
-
     def createMatch(self, container) -> Match:
         pass
 
@@ -19,6 +16,3 @@ class AbstractMatchFactory:
         hltvHomePage = "https://www.hltv.org"
         gameLink = hltvHomePage + container.a.get('href')
         return gameLink
-
-    def getTeams(self, container: soup.element.Tag) -> [str]:
-        pass

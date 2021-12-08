@@ -20,3 +20,6 @@ class PastMatchFactory(AbstractMatchFactory):
 
     def getMapScore(self, container: soup.element.Tag) -> [int]:
         pass
+
+    def getTeamLogos(self, container: soup.element.Tag) -> [str]:
+        pass

@@ -27,3 +27,5 @@ class CurrentMatchFactory(AbstractMatchFactory):
     def getBestOf(self, container: soup.element.Tag) -> int:
         pass
 
+    def getTeamLogos(self, container: soup.element.Tag) -> [str]:
+        pass

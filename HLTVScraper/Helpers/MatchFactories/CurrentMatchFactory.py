@@ -14,16 +14,13 @@ class CurrentMatchFactory(AbstractMatchFactory):
 
     def createMatch(self, container: soup.element.Tag) -> CurrentMatch:
         self.validateContainer(container)
-        team1, team2 = self.getTeams(container)
+        team1, team2 = self.getTeams(container, MatchDetails.cuTeam)
         team1Logo, team2Logo = self.getTeamLogos(container)
         link = self.getLinkToGame(container)
         team1CuMapScore, team2CuMapScore = self.getCurrentScore(container)
         team1MapsWon, team2MapsWon = self.getMapScore(container)
         bestOf = self.getBestOf(container)
         return CurrentMatch(team1, team2, team1Logo, team2Logo, link, team1CuMapScore, team2CuMapScore, team1MapsWon, team2MapsWon, bestOf)
-
-    def getTeams(self, container: soup.element.Tag) -> [str]:
-        pass
 
     def getMapScore(self, container: soup.element.Tag) -> [int]:
         pass

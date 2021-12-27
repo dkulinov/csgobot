@@ -16,3 +16,15 @@ class AbstractMatchFactory:
         hltvHomePage = "https://www.hltv.org"
         gameLink = hltvHomePage + container.a.get('href')
         return gameLink
+
+    def getTeams(self, container, HLTVTeamClassName):
+        self.validateHLTVTeamClassName(HLTVTeamClassName)
+        teamNames = []
+        teams = container.find_all(class_=HLTVTeamClassName)
+        for team in teams:
+            teamNames.append(team.getText())
+        return teamNames
+
+    def validateHLTVTeamClassName(self, HLTVTeamClassName):
+        if HLTVTeamClassName not in [MatchDetails.resultTeam, MatchDetails.cuOrFutureTeam]:
+            raise TypeError("Invalid team class name:", HLTVTeamClassName)

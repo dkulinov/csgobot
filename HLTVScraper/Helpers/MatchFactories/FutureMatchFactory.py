@@ -14,6 +14,13 @@ class FutureMatchFactory(AbstractMatchFactory):
 
     def createMatch(self, container: soup.element.Tag) -> FutureMatch:
         self.validateContainer(container)
+        team1, team2 = self.getTeams(container)
+        team1Logo, team2Logo = self.getTeamLogos(container)
+        link = self.getLinkToGame(container)
+        date = self.getDate(container)
+        time = self.getTime(container)
+        bestOf = self.getBestOf(container)
+        return FutureMatch(team1, team2, team1Logo, team2Logo, link, date, time, bestOf)
 
     def getTeams(self, container: soup.element.Tag) -> [str]:
         pass

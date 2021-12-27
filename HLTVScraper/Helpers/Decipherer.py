@@ -8,7 +8,7 @@ class Decipherer:
     def __init__(self):
         pass
 
-    def validateContainer(container: soup.element.Tag):
+    def validateContainer(self, container: soup.element.Tag):
         if container['class'] not in [MatchContainers.past.value, MatchContainers.present.value,
                                       MatchContainers.future]:
             raise TypeError('Was not able to decipher the given div')

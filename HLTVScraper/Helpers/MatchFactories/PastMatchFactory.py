@@ -14,6 +14,11 @@ class PastMatchFactory(AbstractMatchFactory):
 
     def createMatch(self, container: soup.element.Tag) -> PastMatch:
         self.validateContainer(container)
+        team1, team2 = self.getTeams(container)
+        team1Logo, team2Logo = self.getTeamLogos(container)
+        link = self.getLinkToGame(container)
+        team1Score, team2Score = self.getMapScore(container)
+        return PastMatch(team1, team2, team1Logo, team2Logo, link, team1Score, team2Score)
 
     def getTeams(self, container: soup.element.Tag) -> [str]:
         pass

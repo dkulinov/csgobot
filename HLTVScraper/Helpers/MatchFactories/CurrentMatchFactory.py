@@ -24,16 +24,17 @@ class CurrentMatchFactory(AbstractMatchFactory):
         return CurrentMatch(team1, team2, team1Logo, team2Logo, link, team1CuMapScore, team2CuMapScore, team1MapsWon, team2MapsWon, bestOf)
 
     def getMapScore(self, container: soup.element.Tag) -> [int]:
-        # TODO: check if correct
-        resultContainer = container.find(class_=MatchDetails.cuMapScore).span
+        resultContainers = container.find_all(class_=MatchDetails.cuMapScore)
         scores = []
-        for results in resultContainer.find_all('span'):
-            scores.append(int(results.getText()))
+        for result in resultContainers:
+            scores.append(int(result.span.getText()))
         return scores
 
     def getCurrentScore(self, container: soup.element.Tag) -> [int]:
-        # TODO: check
-        pass
+        scores = []
+        for score in container.find_all(class_=MatchDetails.cuScore):
+            scores.append(int(score.getText()))
+        return scores
 
     def getBestOf(self, container: soup.element.Tag) -> int:
         return int(container.find(class_=MatchDetails.bestOf).getText()[-1])

@@ -22,4 +22,9 @@ class PastMatchFactory(AbstractMatchFactory):
         return PastMatch(team1, team2, team1Logo, team2Logo, link, team1Score, team2Score)
 
     def getMapScore(self, container: soup.element.Tag) -> [int]:
-        pass
+        resultContainer = container.find(class_=MatchDetails.pastMapScore)
+        scores = []
+        for results in resultContainer.find_all('span'):
+            scores.append(int(results.getText()))
+        return scores
+

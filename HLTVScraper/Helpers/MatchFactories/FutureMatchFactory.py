@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup as soup
 from Commons.Types.Match.FutureMatch import FutureMatch
+from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
 from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 
@@ -15,7 +16,7 @@ class FutureMatchFactory(AbstractMatchFactory):
     def createMatch(self, container: soup.element.Tag) -> FutureMatch:
         self.validateContainer(container)
         team1, team2 = self.getTeams(container, MatchDetails.futureTeam)
-        team1Logo, team2Logo = self.getTeamLogos(container)
+        team1Logo, team2Logo = self.getTeamLogos(container, MatchDetails.futureLogo)
         link = self.getLinkToGame(container)
         date = self.getDate(container)
         time = self.getTime(container)
@@ -32,5 +33,3 @@ class FutureMatchFactory(AbstractMatchFactory):
     def getTime(self, container: soup.element.Tag):
         pass
 
-    def getTeamLogos(self, container: soup.element.Tag) -> [str]:
-        pass

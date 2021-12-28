@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup as soup
 from Commons.Types.Match.CurrentMatch import CurrentMatch
+from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
 from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 
@@ -15,7 +16,7 @@ class CurrentMatchFactory(AbstractMatchFactory):
     def createMatch(self, container: soup.element.Tag) -> CurrentMatch:
         self.validateContainer(container)
         team1, team2 = self.getTeams(container, MatchDetails.cuTeam)
-        team1Logo, team2Logo = self.getTeamLogos(container)
+        team1Logo, team2Logo = self.getTeamLogos(container, MatchDetails.cuLogo)
         link = self.getLinkToGame(container)
         team1CuMapScore, team2CuMapScore = self.getCurrentScore(container)
         team1MapsWon, team2MapsWon = self.getMapScore(container)
@@ -31,5 +32,3 @@ class CurrentMatchFactory(AbstractMatchFactory):
     def getBestOf(self, container: soup.element.Tag) -> int:
         pass
 
-    def getTeamLogos(self, container: soup.element.Tag) -> [str]:
-        pass

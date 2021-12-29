@@ -11,5 +11,5 @@ class MatchDetails(Enum):
     matchTime = "matchTime"
     bestOf = "matchMeta"
     cuScore = "currentMapScore"
-    cuMapScore = "mapScore"  # need to go inside this span to get map score
+    cuMapScore = "mapScore"
     pastMapScore = "result-score"

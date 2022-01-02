@@ -3,6 +3,7 @@ from Commons.Types.Team import HLTVTeams
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 
 
+# TODO: turn into switch statement
 def mapInputToCorrectHltvTeam(inputTeam: str) -> str:
     if not InputTeams.getIsValid(inputTeam):
         raise InvalidTeamException("This team isn't part of the valid inputs.")

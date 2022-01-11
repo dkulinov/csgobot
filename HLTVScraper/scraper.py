@@ -8,6 +8,7 @@ from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.Helpers import UrlBuilder, SoupChef
 from HLTVScraper.Helpers.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.MatchFactories.FutureMatchFactory import FutureMatchFactory
+from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.Helpers.MatchFactories.PastMatchFactory import PastMatchFactory
 from datetime import datetime
 import time
@@ -29,19 +30,8 @@ class Scraper:
         self.soupChef = soupChef
 
     def getMatchesByTeam(self, team: str, containerType: MatchContainers) -> [Match]:
-        correctFactory = None
+        correctFactory = self.getCorrectFactory(containerType)
         url = self.urlBuilder.buildGetMatchesByTeamUrl(team)
-        # TODO: turn into switch statement
-        if containerType == MatchContainers.past:
-            correctFactory = self.pastMatchFactory
-        elif containerType == MatchContainers.present:
-            correctFactory = self.currentMatchFactory
-        elif containerType == MatchContainers.future:
-            correctFactory = self.futureMatchFactory
-        if correctFactory is None:
-            raise TypeError("containerType has to be of type MatchContainer")
-
-
 
     def getUpcomingMatchesByDay(self, timestamp: str) -> [Match]:
         datetime.fromtimestamp(timestamp)
@@ -57,22 +47,8 @@ class Scraper:
     #     return MatchStats()
 
     def getMatches(self, containerType: MatchContainers, predefinedFilter: MatchType = MatchType.TopTier):
-
-        correctFactory = None
-        correctUrl = None
-        # TODO: turn into switch statement
-        if containerType == MatchContainers.past:
-            correctFactory = self.pastMatchFactory
-            correctUrl = self.urlBuilder.buildGetPastMatches()
-        elif containerType == MatchContainers.present:
-            correctFactory = self.currentMatchFactory
-            correctUrl = self.urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter)
-        elif containerType == MatchContainers.future:
-            correctFactory = self.futureMatchFactory
-            correctUrl = self.urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter)
-        if correctFactory is None or correctUrl is None:
-            raise TypeError("containerType has to be of type MatchContainer")
-
+        correctFactory = self.getCorrectFactory(containerType)
+        correctUrl = self.getCorrectMatchesUrl(containerType, predefinedFilter)
         matches = []
         theSoup = self.soupChef.makeSoup(correctUrl)
         matchContainers = theSoup.find_all(class_=containerType)
@@ -82,4 +58,24 @@ class Scraper:
 
         return matches
 
+    def getCorrectFactory(self, containerType: MatchContainers) -> AbstractMatchFactory:
+        match containerType:
+            case MatchContainers.past:
+                return self.pastMatchFactory
+            case MatchContainers.present:
+                return self.currentMatchFactory
+            case MatchContainers.future:
+                return self.futureMatchFactory
+            case _:
+                raise TypeError("containerType has to be of type MatchContainer")
 
+    def getCorrectMatchesUrl(self, containerType: MatchContainers, predefinedFilter: MatchType):
+        match containerType:
+            case MatchContainers.past:
+                return self.urlBuilder.buildGetPastMatches()
+            case MatchContainers.present:
+                return self.urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter)
+            case MatchContainers.future:
+                return self.urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter)
+            case _:
+                raise TypeError("containerType has to be of type MatchContainer")

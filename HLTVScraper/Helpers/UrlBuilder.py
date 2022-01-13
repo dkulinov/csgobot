@@ -18,7 +18,7 @@ class URLBuilder:
 
     def buildGetMatchesByTeamUrl(self, team: str) -> str:
         normalizedTeamName = mapInputToCorrectHltvTeam(team)
-        teamId = HLTVTeams.getTeamId(team)
+        teamId = HLTVTeams.getTeamId(normalizedTeamName)
         return self.baseUrl + "/team/" + str(teamId) + "/" + normalizedTeamName
 
     def buildGetPastMatches(self) -> str:

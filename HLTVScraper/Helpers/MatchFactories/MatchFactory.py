@@ -35,9 +35,9 @@ class AbstractMatchFactory:
         return teamLogoLinks
 
     def validateHLTVTeamClassName(self, HLTVTeamClassName):
-        if HLTVTeamClassName not in [MatchDetails.pastTeam, MatchDetails.cuTeam, MatchDetails.futureTeam]:
+        if HLTVTeamClassName not in [MatchDetails.pastTeam, MatchDetails.cuTeam, MatchDetails.futureTeam, MatchDetails.byTeamMatchTeam]:
             raise TypeError("Invalid team class name:", HLTVTeamClassName)
 
     def validateHLTVTeamLogoClassName(self, HLTVTeamLogoClassName):
-        if HLTVTeamLogoClassName not in [MatchDetails.pastLogo, MatchDetails.cuLogo, MatchDetails.futureLogo]:
+        if HLTVTeamLogoClassName not in [MatchDetails.pastLogo, MatchDetails.cuLogo, MatchDetails.futureLogo, MatchDetails.byTeamMatchLogo]:
             raise TypeError("Invalid team logo class name:", HLTVTeamLogoClassName)

@@ -5,9 +5,11 @@ from Commons.Types.Match.Match import Match
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 from Commons.Mappers.InputToHtlvTeam import mapInputToCorrectHltvTeam
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
+from HLTVScraper.HLTVConsts.MatchTIme import MatchTime
 from HLTVScraper.Helpers import UrlBuilder, SoupChef
 from HLTVScraper.Helpers.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.MatchFactories.FutureMatchFactory import FutureMatchFactory
+from HLTVScraper.Helpers.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
 from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.Helpers.MatchFactories.PastMatchFactory import PastMatchFactory
 from datetime import datetime
@@ -21,17 +23,27 @@ class Scraper:
             soupChef: SoupChef,
             pastMatchFactory: PastMatchFactory,
             currentMatchFactory: CurrentMatchFactory,
-            futureMatchFactory: FutureMatchFactory
+            futureMatchFactory: FutureMatchFactory,
+            matchByTeamFactory: MatchByTeamFactory
     ):
         self.urlBuilder = urlBuilder
         self.pastMatchFactory = pastMatchFactory
         self.currentMatchFactory = currentMatchFactory
         self.futureMatchFactory = futureMatchFactory
+        self.matchByTeamFactory = matchByTeamFactory
         self.soupChef = soupChef
 
-    def getMatchesByTeam(self, team: str, containerType: MatchContainers) -> [Match]:
-        correctFactory = self.getCorrectFactory(containerType)
+    def getMatchesByTeam(self, team: str, time: MatchTime = MatchTime.future.value) -> [Match]:
         url = self.urlBuilder.buildGetMatchesByTeamUrl(team)
+        theSoup = self.soupChef.makeSoup(url).find_all(class_="match-table")[time.value]
+        matches = []
+        matchContainers = theSoup.find_all(class_=MatchContainers.byTeam)
+
+        for matchContainer in matchContainers:
+            matches.append(self.matchByTeamFactory.createMatch(matchContainer))
+
+        return matches
+
 
     def getUpcomingMatchesByDay(self, timestamp: str) -> [Match]:
         datetime.fromtimestamp(timestamp)

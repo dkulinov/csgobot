@@ -7,4 +7,3 @@ class MatchContainers(Enum):
     future = "upcomingMatch"
     byTeam = "team-row"
 
-

@@ -33,9 +33,9 @@ class Scraper:
         self.matchByTeamFactory = matchByTeamFactory
         self.soupChef = soupChef
 
-    def getMatchesByTeam(self, team: str, time: MatchTime = MatchTime.future.value) -> [Match]:
+    def getMatchesByTeam(self, team: str, timeFrame: MatchTime = MatchTime.future.value) -> [Match]:
         url = self.urlBuilder.buildGetMatchesByTeamUrl(team)
-        theSoup = self.soupChef.makeSoup(url).find_all(class_="match-table")[time.value]
+        theSoup = self.soupChef.makeSoup(url).find_all(class_="match-table")[timeFrame.value]
         matches = []
         matchContainers = theSoup.find_all(class_=MatchContainers.byTeam)
 
@@ -45,16 +45,30 @@ class Scraper:
         return matches
 
 
-    def getUpcomingMatchesByDay(self, timestamp: str) -> [Match]:
-        datetime.fromtimestamp(timestamp)
-        time.time()
-        pass
+    def getMatchesByDay(self, theDate: str) -> [Match]:
+        correctFactory = None
+        correctUrl = None
+        try:
+            lookForDate = datetime.strptime(theDate, "%m/%d/%Y").date()
+        except ValueError:
+            raise ValueError("Date has to be in the mm/dd/yyyy format.")
+        todayDate = datetime.today().date()
+        if lookForDate < todayDate:
+            correctFactory = self.pastMatchFactory
+            correctUrl = self.urlBuilder.buildGetPastMatches()
+        elif lookForDate == todayDate:
+            correctFactory = self.currentMatchFactory
+            correctUrl = self.urlBuilder.buildGetUpcomingMatchesUrl()
+        elif lookForDate > todayDate:
+            correctFactory = self.futureMatchFactory
+            correctUrl = self.urlBuilder.buildGetUpcomingMatchesUrl()
+
 
     # by day and by team
     # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:
     #     return [Match()]
-    #
-    #
+
+
     # def getStats(team1, team2) -> MatchStats:
     #     return MatchStats()
 

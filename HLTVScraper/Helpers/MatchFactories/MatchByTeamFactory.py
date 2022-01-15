@@ -4,7 +4,7 @@ from Commons.Types.Match.MatchByTeam import MatchByTeam
 from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
 from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
-from enum import  Enum
+from enum import Enum
 
 
 class MatchByTeamFactory(AbstractMatchFactory):
@@ -31,7 +31,7 @@ class MatchByTeamFactory(AbstractMatchFactory):
         return gameLink
 
     def getEpochTime(self, container: soup.element.Tag) -> str:
-        return container.find(class_=MatchDetails.matchTime).span.get('data-unix')
+        return container.find(class_=MatchDetails.byTeamMatchTime).span.get('data-unix')
 
     def getScore(self, container: soup.element.Tag) -> [int]:
         scoreContainer = container.find(class_=MatchDetails.byTeamScore)
@@ -39,5 +39,3 @@ class MatchByTeamFactory(AbstractMatchFactory):
         score1 = scores[0].getText()
         score2 = scores[2].getText()
         return [score1, score2]
-
-

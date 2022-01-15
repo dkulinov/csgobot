@@ -26,5 +26,6 @@ class FutureMatchFactory(AbstractMatchFactory):
         return int(container.find(class_=MatchDetails.bestOf).getText()[-1])
 
     def getEpochTime(self, container: soup.element.Tag) -> str:
+        if container.find(class_=MatchDetails.matchTime).getText() == "LIVE":
+            return "LIVE"
         return container.find(class_=MatchDetails.matchTime).get('data-unix')
-

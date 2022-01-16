@@ -46,22 +46,9 @@ class Scraper:
 
 
     def getMatchesByDay(self, theDate: str) -> [Match]:
-        correctFactory = None
-        correctUrl = None
-        try:
-            lookForDate = datetime.strptime(theDate, "%m/%d/%Y").date()
-        except ValueError:
-            raise ValueError("Date has to be in the mm/dd/yyyy format.")
+        lookForDate = self.mapToDate(theDate)
         todayDate = datetime.today().date()
-        if lookForDate < todayDate:
-            correctFactory = self.pastMatchFactory
-            correctUrl = self.urlBuilder.buildGetPastMatches()
-        elif lookForDate == todayDate:
-            correctFactory = self.currentMatchFactory
-            correctUrl = self.urlBuilder.buildGetUpcomingMatchesUrl()
-        elif lookForDate > todayDate:
-            correctFactory = self.futureMatchFactory
-            correctUrl = self.urlBuilder.buildGetUpcomingMatchesUrl()
+        correctFactory, correctUrl = self.getCorrectFactoryAndUrlByDay(lookForDate, todayDate)
 
 
     # by day and by team
@@ -105,3 +92,17 @@ class Scraper:
                 return self.urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter)
             case _:
                 raise TypeError("containerType has to be of type MatchContainer")
+
+    def getCorrectFactoryAndUrlByDay(self, lookForDate, todayDate):
+        if lookForDate < todayDate:
+            return self.pastMatchFactory, self.urlBuilder.buildGetPastMatches()
+        elif lookForDate == todayDate:
+            return self.currentMatchFactory, self.urlBuilder.buildGetUpcomingMatchesUrl()
+        elif lookForDate > todayDate:
+            return self.futureMatchFactory, self.urlBuilder.buildGetUpcomingMatchesUrl()
+
+    def mapToDate(self, theDate: str):
+        try:
+            return datetime.strptime(theDate, "%m/%d/%Y").date()
+        except ValueError:
+            raise ValueError("Date has to be in the mm/dd/yyyy format.")

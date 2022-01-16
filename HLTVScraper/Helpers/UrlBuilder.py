@@ -2,6 +2,7 @@ from Commons.Mappers.InputToHtlvTeam import mapInputToCorrectHltvTeam
 from Commons.Types.MatchType import MatchType
 from Commons.Types.Team import HLTVTeams
 
+
 class URLBuilder:
 
     def __init__(self):
@@ -21,8 +22,8 @@ class URLBuilder:
         teamId = HLTVTeams.getTeamId(normalizedTeamName)
         return self.baseUrl + "/team/" + str(teamId) + "/" + normalizedTeamName
 
-    def buildGetPastMatches(self) -> str:
-        return self.baseUrl + '/result'
+    def buildGetPastMatches(self, offset: int = 0) -> str:
+        return self.baseUrl + '/result?offset=' + str(offset)
 
     def getHeaders(self):
         return self.headers

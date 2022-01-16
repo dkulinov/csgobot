@@ -45,7 +45,6 @@ class Scraper:
 
         return matches
 
-
     # TODO: maybe only do max last week in the past
     def getMatchesByDay(self, theDate: str) -> [Match]:
         lookForDate = self.mapToDate(theDate)
@@ -58,24 +57,25 @@ class Scraper:
         # FUTURE: an upcomingMatchesSection
         # PAST: results-sublist. result page shows 100 matches (url: /results?offset=200) means 201-300
 
-
     # by day and by team
     # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:
     #     return [Match()]
 
-
     # def getStats(team1, team2) -> MatchStats:
     #     return MatchStats()
 
-    # TODO: for past matches maybe 1 week only max (receive num days param)
-    def getMatches(self, containerType: MatchContainers, predefinedFilter: MatchType = MatchType.TopTier):
+    def getMatches(self, containerType: MatchContainers, offset: int = 0, numberPast: int = 20,
+                   predefinedFilter: MatchType = MatchType.TopTier):
+        self.validateNumPastMatches(numberPast)
         correctFactory = self.getCorrectFactory(containerType)
-        correctUrl = self.getCorrectMatchesUrl(containerType, predefinedFilter)
+        correctUrl = self.getCorrectMatchesUrl(containerType, predefinedFilter, offset)
         matches = []
         theSoup = self.soupChef.makeSoup(correctUrl)
         matchContainers = theSoup.find_all(class_=containerType)
 
-        for matchContainer in matchContainers:
+        for count, matchContainer in enumerate(matchContainers):
+            if containerType == MatchContainers.past and count > numberPast:
+                break
             matches.append(correctFactory.createMatch(matchContainer))
 
         return matches
@@ -91,10 +91,10 @@ class Scraper:
             case _:
                 raise TypeError("containerType has to be of type MatchContainer")
 
-    def getCorrectMatchesUrl(self, containerType: MatchContainers, predefinedFilter: MatchType):
+    def getCorrectMatchesUrl(self, containerType: MatchContainers, predefinedFilter: MatchType, offset: int):
         match containerType:
             case MatchContainers.past:
-                return self.urlBuilder.buildGetPastMatches()
+                return self.urlBuilder.buildGetPastMatches(offset)
             case MatchContainers.present:
                 return self.urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter)
             case MatchContainers.future:
@@ -121,3 +121,7 @@ class Scraper:
         if weekBeforeLookForDate < weekBeforeToday:
             raise ValueError("Cannot look up matches more than a week before today.")
 
+    def validateNumPastMatches(self, numberPast: int):
+        if numberPast > 100:
+            raise ValueError("Cannot get more than 100 past matches at a time. Please modify the offset if you want "
+                             "to go further into the past")

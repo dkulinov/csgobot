@@ -140,7 +140,9 @@ class Scraper:
 
     def getTodaysMatches(self, soup) -> [Match]:
         # TODAY: liveMatchesSection + an upcomingMatchesSection
-        pass
+        liveMatches = self.getMatches(MatchContainers.present, predefinedFilter=None)
+        upcomingTodayMatches = []
+        return liveMatches + upcomingTodayMatches
 
     def getFutureMatchesByDay(self, soup, lookForDate) -> [FutureMatch]:
         # FUTURE: an upcomingMatchesSection

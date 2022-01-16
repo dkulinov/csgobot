@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup as soup
 from urllib.request import Request, urlopen
+
+from Commons.Types.Match import PastMatch, FutureMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.Match.Match import Match
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
@@ -51,11 +53,17 @@ class Scraper:
         todayDate = datetime.today().date()
         weekBefore = datetime.today().date() - timedelta(days=7)
         self.validateDateNotMoreThanWeekBefore(lookForDate, weekBefore)
-        correctFactory, url = self.getCorrectFactoryAndUrlByDay(lookForDate, todayDate)
+        url = self.getMatchesByDayUrl(lookForDate, todayDate)
         theSoup = self.soupChef.makeSoup(url)
-        # TODAY: liveMatchesSection + an upcomingMatchesSection
-        # FUTURE: an upcomingMatchesSection
-        # PAST: results-sublist. result page shows 100 matches (url: /results?offset=200) means 201-300
+        matches = []
+        if lookForDate < todayDate:
+            matches = self.getPastMatchesByDay(theSoup, lookForDate)
+        elif lookForDate == todayDate:
+            matches = self.getTodaysMatches(theSoup)
+        elif lookForDate > todayDate:
+            matches = self.getFutureMatchesByDay(theSoup, lookForDate)
+        return matches
+
 
     # by day and by team
     # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:
@@ -102,13 +110,13 @@ class Scraper:
             case _:
                 raise TypeError("containerType has to be of type MatchContainer")
 
-    def getCorrectFactoryAndUrlByDay(self, lookForDate, todayDate):
+    def getMatchesByDayUrl(self, lookForDate, todayDate):
         if lookForDate < todayDate:
-            return self.pastMatchFactory, self.urlBuilder.buildGetPastMatches()
+            return self.urlBuilder.buildGetPastMatches()
         elif lookForDate == todayDate:
-            return self.currentMatchFactory, self.urlBuilder.buildGetUpcomingMatchesUrl()
+            return self.urlBuilder.buildGetUpcomingMatchesUrl()
         elif lookForDate > todayDate:
-            return self.futureMatchFactory, self.urlBuilder.buildGetUpcomingMatchesUrl()
+            return self.urlBuilder.buildGetUpcomingMatchesUrl()
 
     def mapToDate(self, theDate: str):
         try:
@@ -125,3 +133,16 @@ class Scraper:
         if numberPast > 100:
             raise ValueError("Cannot get more than 100 past matches at a time. Please modify the offset if you want "
                              "to go further into the past")
+
+    def getPastMatchesByDay(self, soup, lookForDate) -> [PastMatch]:
+        # PAST: results-sublist. result page shows 100 matches (url: /results?offset=200) means 201-300
+        pass
+
+    def getTodaysMatches(self, soup) -> [Match]:
+        # TODAY: liveMatchesSection + an upcomingMatchesSection
+        pass
+
+    def getFutureMatchesByDay(self, soup, lookForDate) -> [FutureMatch]:
+        # FUTURE: an upcomingMatchesSection
+        pass
+

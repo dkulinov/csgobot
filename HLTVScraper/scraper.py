@@ -13,6 +13,7 @@ from HLTVScraper.Helpers.MatchFactories.MatchByTeamFactory import MatchByTeamFac
 from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.Helpers.MatchFactories.PastMatchFactory import PastMatchFactory
 from datetime import datetime
+from datetime import timedelta
 import time
 
 
@@ -45,10 +46,17 @@ class Scraper:
         return matches
 
 
+    # TODO: maybe only do max last week in the past
     def getMatchesByDay(self, theDate: str) -> [Match]:
         lookForDate = self.mapToDate(theDate)
         todayDate = datetime.today().date()
-        correctFactory, correctUrl = self.getCorrectFactoryAndUrlByDay(lookForDate, todayDate)
+        weekBefore = datetime.today().date() - timedelta(days=7)
+        self.validateDateNotMoreThanWeekBefore(lookForDate, weekBefore)
+        correctFactory, url = self.getCorrectFactoryAndUrlByDay(lookForDate, todayDate)
+        theSoup = self.soupChef.makeSoup(url)
+        # TODAY: liveMatchesSection + an upcomingMatchesSection
+        # FUTURE: an upcomingMatchesSection
+        # PAST: results-sublist. result page shows 100 matches (url: /results?offset=200) means 201-300
 
 
     # by day and by team
@@ -59,6 +67,7 @@ class Scraper:
     # def getStats(team1, team2) -> MatchStats:
     #     return MatchStats()
 
+    # TODO: for past matches maybe 1 week only max (receive num days param)
     def getMatches(self, containerType: MatchContainers, predefinedFilter: MatchType = MatchType.TopTier):
         correctFactory = self.getCorrectFactory(containerType)
         correctUrl = self.getCorrectMatchesUrl(containerType, predefinedFilter)
@@ -106,3 +115,9 @@ class Scraper:
             return datetime.strptime(theDate, "%m/%d/%Y").date()
         except ValueError:
             raise ValueError("Date has to be in the mm/dd/yyyy format.")
+
+    def validateDateNotMoreThanWeekBefore(self, lookForDate, weekBeforeToday):
+        weekBeforeLookForDate = lookForDate - timedelta(days=7)
+        if weekBeforeLookForDate < weekBeforeToday:
+            raise ValueError("Cannot look up matches more than a week before today.")
+

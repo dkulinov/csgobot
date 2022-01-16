@@ -17,3 +17,4 @@ class MatchDetails(Enum):
     cuMapScore = "mapScore"
     pastMapScore = "result-score"
     byTeamScore = "score-cell"
+    emptyFutureMatch = "matchInfoEmpty"

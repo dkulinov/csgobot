@@ -56,7 +56,7 @@ class Scraper:
         theSoup = self.soupChef.makeSoup(url)
         matches = []
         if lookForDate < todayDate:
-            matches = self.getPastMatchesByDay(theSoup, lookForDate)
+            matches = self.getPastMatchesByDay(lookForDate)
         elif lookForDate == todayDate:
             matches = self.getTodaysMatches(theSoup)
         elif lookForDate > todayDate:
@@ -132,9 +132,42 @@ class Scraper:
             raise ValueError("Cannot get more than 100 past matches at a time. Please modify the offset if you want "
                              "to go further into the past")
 
-    def getPastMatchesByDay(self, soup, lookForDate) -> [PastMatch]:
-        # PAST: results-sublist. result page shows 100 matches (url: /results?offset=200) means 201-300
-        pass
+    def getPastMatchesByDay(self, lookForDate) -> [PastMatch]:
+        maxDays = 7
+        daysSearched = 0
+        soups = []
+        offset = 0
+        while daysSearched < maxDays:
+            url = self.urlBuilder.buildGetPastMatches(offset)
+            soup = self.soupChef.makeSoup(url)
+            dayResultContainers = soup.find_all(class_="results-sublist")
+            soups.append(dayResultContainers)
+            daysSearched += len(dayResultContainers)
+            offset += 100
+            lastDayTitle = dayResultContainers[-1].div.getText()
+            while daysSearched == maxDays:
+                url = self.urlBuilder.buildGetPastMatches(offset)
+                soup = self.soupChef.makeSoup(url)
+                dayResultContainers = soup.find_all(class_="result-sublist")
+                soups.append(dayResultContainers[0])
+                offset += 100
+                if dayResultContainers[-1].div.getText() != lastDayTitle:
+                    daysSearched += 1
+        soupsToSearch = []
+        for theSoup in soups:
+            dateFromTitle = theSoup.div.getText()[12:]
+            dateAsArray = dateFromTitle.split(" ")
+            dateAsArray[1] = dateAsArray[1][:2]
+            theDate = "".join(dateAsArray)
+            if theDate == lookForDate:
+                soupsToSearch.append(theSoup)
+        matches = []
+        for soupToSearch in soupsToSearch:
+            correctFactory = self.pastMatchFactory
+            matchContainers = soupToSearch.find_all(class_=MatchContainers.past)
+            for matchContainer in matchContainers:
+                matches.append(correctFactory.createMatch(matchContainer))
+        return matches
 
     def getFutureMatchesByDay(self, soup, lookForDate) -> [FutureMatch]:
         matches = []

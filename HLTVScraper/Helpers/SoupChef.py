@@ -9,7 +9,7 @@ class SoupChef:
     def __init(self, urlBuilder: UrlBuilder):
         self.urlBuilder = urlBuilder
 
-    def makeSoup(self, url: str):
+    def makeSoup(self, url: str) -> soup.element.Tag:
         headers = self.urlBuilder.getHeaders()
         req = Request(url, headers=headers)
         res = urlopen(req)

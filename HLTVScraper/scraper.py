@@ -2,9 +2,10 @@ from bs4 import BeautifulSoup as soup
 from Commons.Types.Match import PastMatch, FutureMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.Match.Match import Match
+from Commons.Types.SeriesStats import SeriesStats
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTIme import MatchTime
-from HLTVScraper.Helpers import UrlBuilder, SoupChef
+from HLTVScraper.Helpers import UrlBuilder, SoupChef, SeriesFactory
 from HLTVScraper.Helpers.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.MatchFactories.FutureMatchFactory import FutureMatchFactory
 from HLTVScraper.Helpers.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
@@ -22,6 +23,7 @@ class Scraper:
             pastMatchFactory: PastMatchFactory,
             currentMatchFactory: CurrentMatchFactory,
             futureMatchFactory: FutureMatchFactory,
+            seriesFactory: SeriesFactory,
             matchByTeamFactory: MatchByTeamFactory
     ):
         self.urlBuilder = urlBuilder
@@ -29,6 +31,7 @@ class Scraper:
         self.currentMatchFactory = currentMatchFactory
         self.futureMatchFactory = futureMatchFactory
         self.matchByTeamFactory = matchByTeamFactory
+        self.seriesFactory = seriesFactory
         self.soupChef = soupChef
 
     def getMatchesFromSoup(self, theSoup: soup.element.Tag, containerType: MatchContainers):
@@ -122,7 +125,7 @@ class Scraper:
         return self.getMatchesFromSoup(correctMatchDay, MatchContainers.future)
 
     def getTodaysMatches(self, theSoup: soup.element.Tag) -> [Match]:
-        liveMatches = self.getAllMatches(MatchContainers.present, predefinedFilter=None)
+        liveMatches = self.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
         todayDate = datetime.today().date()
         upcomingMatchesToday = self.getFutureMatchesByDay(theSoup, todayDate)
         return liveMatches + upcomingMatchesToday
@@ -170,12 +173,15 @@ class Scraper:
             matches.append(self.getMatchesFromSoup(soupToSearch, MatchContainers.past))
         return matches
 
-    # by day and by team
-    # def getPastMatches(predefinedFilter: MatchType, team: str= "None") -> [Match]:
-    #     return [Match()]
+    def getSeriesStats(self, matchLink: str):
+        if not matchLink.startswith("https://www.hltv.org"):
+            raise ValueError("Please provide a valid game url")
+        theSoup = self.soupChef.makeSoup(matchLink)
+        series = self.seriesFactory.createSeries(theSoup)
+        return series
 
-    # def getStats(team1, team2) -> MatchStats:
-    #     return MatchStats()
+    # def getNews(self):
+    #     pass
 
     def mapFromResultDateToDate(self, title):
         dateFromTitle = title[12:]
@@ -186,3 +192,4 @@ class Scraper:
             return datetime.strptime(theDateStr, "%B %d %Y").date()
         except ValueError:
             raise ValueError("Could not transform from result title to date")
+

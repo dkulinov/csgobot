@@ -1,2 +1,0 @@
-class Player:
-    name: str

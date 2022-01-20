@@ -1,2 +1,0 @@
-class Series:
-    date: str

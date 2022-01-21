@@ -1,3 +1,4 @@
+import bs4
 from bs4 import BeautifulSoup as soup
 from Commons.Types.Match.Match import Match
 from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
@@ -7,7 +8,7 @@ class AbstractMatchFactory:
     def __init__(self):
         pass
 
-    def validateContainer(self, container: soup.element.Tag):
+    def validateContainer(self, container: bs4.element.Tag):
         pass
 
     def createMatch(self, container) -> Match:

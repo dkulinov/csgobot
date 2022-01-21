@@ -3,9 +3,10 @@ from Commons.Types.Match import PastMatch, FutureMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.Match.Match import Match
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
-from HLTVScraper.HLTVConsts.MatchTIme import MatchTime
+from HLTVScraper.HLTVConsts.MatchTime import MatchTime
 from HLTVScraper.Helpers import UrlBuilder, SoupChef
-from HLTVScraper.Helpers.Factories import NewsFactory, SeriesFactory
+from HLTVScraper.Helpers.Factories.NewsFactory import NewsFactory
+from HLTVScraper.Helpers.Factories.SeriesFactory import SeriesFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.FutureMatchFactory import FutureMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.MatchByTeamFactory import MatchByTeamFactory

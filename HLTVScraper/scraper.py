@@ -176,7 +176,7 @@ class Scraper:
         return matches
 
     def getSeriesStats(self, matchLink: str):
-        if not matchLink.startswith("https://www.hltv.org"):
+        if not matchLink.startswith("https://www.hltv.org/matches/"):
             raise ValueError("Please provide a valid game url")
         theSoup = self.soupChef.makeSoup(matchLink)
         series = self.seriesFactory.createSeries(theSoup)

@@ -15,8 +15,11 @@ class SeriesFactory:
         return SeriesStats(matches, team1MapsWon, team2MapsWon, team1Name, team2Name)
 
     def validateSoup(self, theSoup: soup.element.Tag):
-        if theSoup.find(class_="countdown").getText().upper() != "MATCH OVER":
-            raise ValueError("The URL provided is incorrect or the match is not yet over")
+        countdownContainer = theSoup.find(class_="countdown")
+        if not countdownContainer:
+            raise ValueError("The URL provided is incorrect. Please provide a url to a specific match")
+        if countdownContainer.getText().upper() != "MATCH OVER":
+            raise ValueError("The the match is not yet over")
 
     def getTeamNames(self, theSoup: soup.element.Tag) -> [str]:
         seriesContainer = theSoup.find(class_="teamsBox")
@@ -79,9 +82,3 @@ class SeriesFactory:
         kill_assist_survive_traded = row.find(class_="kast").getText()
         rating = row.find(class_="rating").getText()
         return PlayerStats(player, kill_death, plus_minus, avg_damage_per_round, kill_assist_survive_traded, rating)
-
-
-
-    def getPlayerName(self, row: soup.element.Tag) -> str:
-        soup
-

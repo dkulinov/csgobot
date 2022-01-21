@@ -5,7 +5,7 @@ from Commons.Types.Match.Match import Match
 from Commons.Types.SeriesStats import SeriesStats
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTIme import MatchTime
-from HLTVScraper.Helpers import UrlBuilder, SoupChef, SeriesFactory
+from HLTVScraper.Helpers import UrlBuilder, SoupChef, SeriesFactory, NewsFactory
 from HLTVScraper.Helpers.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.MatchFactories.FutureMatchFactory import FutureMatchFactory
 from HLTVScraper.Helpers.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
@@ -24,7 +24,8 @@ class Scraper:
             currentMatchFactory: CurrentMatchFactory,
             futureMatchFactory: FutureMatchFactory,
             seriesFactory: SeriesFactory,
-            matchByTeamFactory: MatchByTeamFactory
+            matchByTeamFactory: MatchByTeamFactory,
+            newsFactory: NewsFactory,
     ):
         self.urlBuilder = urlBuilder
         self.pastMatchFactory = pastMatchFactory
@@ -33,6 +34,7 @@ class Scraper:
         self.matchByTeamFactory = matchByTeamFactory
         self.seriesFactory = seriesFactory
         self.soupChef = soupChef
+        self.newsFactory = newsFactory
 
     def getMatchesFromSoup(self, theSoup: soup.element.Tag, containerType: MatchContainers):
         matches = []
@@ -180,8 +182,14 @@ class Scraper:
         series = self.seriesFactory.createSeries(theSoup)
         return series
 
-    # def getNews(self):
-    #     pass
+    def getNews(self):
+        url = self.urlBuilder.buildGetNewsUrl()
+        theSoup = self.soupChef.makeSoup(url)
+        news = []
+        newsContainers = theSoup.find_all(class_="newsline article")
+        for newsContainer in newsContainers:
+            news.append(self.newsFactory.createNews(newsContainer))
+        return news
 
     def mapFromResultDateToDate(self, title):
         dateFromTitle = title[12:]

@@ -25,5 +25,8 @@ class URLBuilder:
     def buildGetPastMatches(self, offset: int = 0) -> str:
         return self.baseUrl + '/result?offset=' + str(offset)
 
+    def buildGetNewsUrl(self):
+        return self.baseUrl
+
     def getHeaders(self):
         return self.headers

@@ -2,15 +2,15 @@ from bs4 import BeautifulSoup as soup
 from Commons.Types.Match import PastMatch, FutureMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.Match.Match import Match
-from Commons.Types.SeriesStats import SeriesStats
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTIme import MatchTime
-from HLTVScraper.Helpers import UrlBuilder, SoupChef, SeriesFactory, NewsFactory
-from HLTVScraper.Helpers.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
-from HLTVScraper.Helpers.MatchFactories.FutureMatchFactory import FutureMatchFactory
-from HLTVScraper.Helpers.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
-from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
-from HLTVScraper.Helpers.MatchFactories.PastMatchFactory import PastMatchFactory
+from HLTVScraper.Helpers import UrlBuilder, SoupChef
+from HLTVScraper.Helpers.Factories import NewsFactory, SeriesFactory
+from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
+from HLTVScraper.Helpers.Factories.MatchFactories.FutureMatchFactory import FutureMatchFactory
+from HLTVScraper.Helpers.Factories.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
+from HLTVScraper.Helpers.Factories.MatchFactories.MatchFactory import AbstractMatchFactory
+from HLTVScraper.Helpers.Factories.MatchFactories.PastMatchFactory import PastMatchFactory
 from datetime import datetime
 from datetime import timedelta
 

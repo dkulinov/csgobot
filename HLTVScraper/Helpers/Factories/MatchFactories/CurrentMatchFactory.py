@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup as soup
 from Commons.Types.Match.CurrentMatch import CurrentMatch
 from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
-from HLTVScraper.Helpers.MatchFactories.MatchFactory import AbstractMatchFactory
+from HLTVScraper.Helpers.Factories.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 
 

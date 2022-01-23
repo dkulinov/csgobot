@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup as soup
+from bs4 import element
 from Commons.Types.Match.CurrentMatch import CurrentMatch
 from Commons.Types.Match.MatchByTeam import MatchByTeam
 from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
@@ -10,11 +10,11 @@ class MatchByTeamFactory(AbstractMatchFactory):
     def __init__(self):
         pass
 
-    def validateContainer(self, container: soup.element.Tag):
+    def validateContainer(self, container: element.Tag):
         if container['class'] != MatchContainers.byTeam.value:
             raise TypeError("Was not able to create Match by team from given container.")
 
-    def createMatch(self, container: soup.element.Tag) -> CurrentMatch:
+    def createMatch(self, container: element.Tag) -> CurrentMatch:
         self.validateContainer(container)
         team1, team2 = self.getTeams(container, MatchDetails.byTeamMatchTeam)
         team1Logo, team2Logo = self.getTeamLogos(container, MatchDetails.byTeamMatchLogo)
@@ -23,16 +23,16 @@ class MatchByTeamFactory(AbstractMatchFactory):
         epochTime = self.getEpochTime(container)
         return MatchByTeam(team1, team2, team1Logo, team2Logo, link, team1Score, team2Score, epochTime)
 
-    def getLinkToGame(self, container: soup.element.Tag) -> str:
+    def getLinkToGame(self, container: element.Tag) -> str:
         hltvHomePage = "https://www.hltv.org"
         link = container.find_all('td')[2].a.get('href')
         gameLink = hltvHomePage + link
         return gameLink
 
-    def getEpochTime(self, container: soup.element.Tag) -> str:
+    def getEpochTime(self, container: element.Tag) -> str:
         return container.find(class_=MatchDetails.byTeamMatchTime).span.get('data-unix')
 
-    def getScore(self, container: soup.element.Tag) -> [int]:
+    def getScore(self, container: element.Tag) -> [int]:
         scoreContainer = container.find(class_=MatchDetails.byTeamScore)
         scores = scoreContainer.find_all('span')
         score1 = scores[0].getText()

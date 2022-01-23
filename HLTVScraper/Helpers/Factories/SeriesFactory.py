@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup as soup
+from bs4 import element
 
 from Commons.Types.SeriesStats import SeriesStats, MatchStats, PlayerStats
 
@@ -7,21 +7,21 @@ class SeriesFactory:
     def __init__(self):
         pass
 
-    def createSeries(self, theSoup: soup.element.Tag) -> SeriesStats:
+    def createSeries(self, theSoup: element.Tag) -> SeriesStats:
         self.validateSoup(theSoup)
         team1Name, team2Name = self.getTeamNames(theSoup)
         team1MapsWon, team2MapsWon = self.getMapsWon(theSoup)
         matches = self.getMatches(theSoup)
         return SeriesStats(matches, team1MapsWon, team2MapsWon, team1Name, team2Name)
 
-    def validateSoup(self, theSoup: soup.element.Tag):
+    def validateSoup(self, theSoup: element.Tag):
         countdownContainer = theSoup.find(class_="countdown")
         if not countdownContainer:
             raise ValueError("The URL provided is incorrect. Please provide a url to a specific match")
         if countdownContainer.getText().upper() != "MATCH OVER":
             raise ValueError("The the match is not yet over")
 
-    def getTeamNames(self, theSoup: soup.element.Tag) -> [str]:
+    def getTeamNames(self, theSoup: element.Tag) -> [str]:
         seriesContainer = theSoup.find(class_="teamsBox")
         teamContainers = seriesContainer.find_all(class_="teamName")
         teamNames = []
@@ -29,7 +29,7 @@ class SeriesFactory:
             teamNames.append(teamContainer.getText())
         return teamNames
 
-    def getMapsWon(self, theSoup: soup.element.Tag) -> [int]:
+    def getMapsWon(self, theSoup: element.Tag) -> [int]:
         seriesContainer = theSoup.find(class_="teamsBox")
         teamContainers = seriesContainer.find_all(class_="team")
         teamMapsWon = []
@@ -37,7 +37,7 @@ class SeriesFactory:
             teamMapsWon.append(int(teamContainer.div.div.getText()))
         return teamMapsWon
 
-    def getMatches(self, theSoup: soup.element.Tag) -> [MatchStats]:
+    def getMatches(self, theSoup: element.Tag) -> [MatchStats]:
         matchStats = []
         mapContainers = theSoup.find_all(class_="mapholder")
         for index, mapContainer in enumerate(mapContainers):
@@ -51,17 +51,17 @@ class SeriesFactory:
         matchStats.append(MatchStats(team1TotalStats, team2TotalStats, None, None, None))
         return matchStats
 
-    def getMapScores(self, theSoup: soup.element.Tag) -> [int]:
+    def getMapScores(self, theSoup: element.Tag) -> [int]:
         mapScores = []
         mapScoreContainers = theSoup.find_all(class_="results-team-score")
         for mapScoreContainer in mapScoreContainers:
             mapScores.append(int(mapScoreContainer.getText()))
         return mapScores
 
-    def getMapName(self, theSoup: soup.element.Tag) -> str:
+    def getMapName(self, theSoup: element.Tag) -> str:
         return theSoup.find(class_="mapname").getText()
 
-    def getMapStats(self, mapNumber, theSoup: soup.element.Tag) -> [[PlayerStats]]:
+    def getMapStats(self, mapNumber, theSoup: element.Tag) -> [[PlayerStats]]:
         mapStats = theSoup.find_all(class_="stats-content")[mapNumber]
         statsByTeam = mapStats.find_all(class_="totalstats")
         team1Rows = statsByTeam[0].tbody.find_all('tr')[1:]
@@ -74,7 +74,7 @@ class SeriesFactory:
             team2Stats.append(self.createPlayerStats(team2Row))
         return [team1Stats, team2Stats]
 
-    def createPlayerStats(self, row: soup.element.Tag) -> PlayerStats:
+    def createPlayerStats(self, row: element.Tag) -> PlayerStats:
         player = row.find(class_="player-nick").getText()
         kill_death = row.find(class_="kd").getText()
         plus_minus = row.find(class_="plus-minus").span.getText()

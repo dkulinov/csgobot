@@ -6,7 +6,7 @@ from Commons.Types.Team import HLTVTeams
 class URLBuilder:
 
     def __init__(self):
-        self.baseUrl = "https://www.hltv.org/"
+        self.baseUrl = "https://www.hltv.org"
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36"
         }
@@ -23,7 +23,7 @@ class URLBuilder:
         return self.baseUrl + "/team/" + str(teamId) + "/" + normalizedTeamName
 
     def buildGetPastMatches(self, offset: int = 0) -> str:
-        return self.baseUrl + '/result?offset=' + str(offset)
+        return self.baseUrl + '/results?offset=' + str(offset)
 
     def buildGetNewsUrl(self):
         return self.baseUrl

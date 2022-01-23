@@ -1,19 +1,19 @@
-from bs4 import BeautifulSoup as soup
+from datetime import datetime
+from datetime import timedelta
+from bs4 import element
 from Commons.Types.Match import PastMatch, FutureMatch
-from Commons.Types.MatchType import MatchType
 from Commons.Types.Match.Match import Match
+from Commons.Types.MatchType import MatchType
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTime import MatchTime
 from HLTVScraper.Helpers import UrlBuilder, SoupChef
-from HLTVScraper.Helpers.Factories.NewsFactory import NewsFactory
-from HLTVScraper.Helpers.Factories.SeriesFactory import SeriesFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.FutureMatchFactory import FutureMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.MatchFactory import AbstractMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.PastMatchFactory import PastMatchFactory
-from datetime import datetime
-from datetime import timedelta
+from HLTVScraper.Helpers.Factories.NewsFactory import NewsFactory
+from HLTVScraper.Helpers.Factories.SeriesFactory import SeriesFactory
 
 
 class Scraper:
@@ -37,10 +37,10 @@ class Scraper:
         self.soupChef = soupChef
         self.newsFactory = newsFactory
 
-    def getMatchesFromSoup(self, theSoup: soup.element.Tag, containerType: MatchContainers):
+    def _getMatchesFromSoup(self, theSoup: element.Tag, containerType: MatchContainers):
         matches = []
-        correctFactory = self.getCorrectFactory(containerType)
-        matchContainers = theSoup.find_all(class_=containerType)
+        correctFactory = self._getCorrectFactory(containerType)
+        matchContainers = theSoup.find_all(class_=containerType.value)
         for matchContainer in matchContainers:
             matches.append(correctFactory.createMatch(matchContainer))
         return matches
@@ -48,34 +48,34 @@ class Scraper:
     def getMatchesByTeam(self, team: str, timeFrame: MatchTime = MatchTime.future.value) -> [Match]:
         url = self.urlBuilder.buildGetMatchesByTeamUrl(team)
         theSoup = self.soupChef.makeSoup(url).find_all(class_="match-table")[timeFrame.value]
-        return self.getMatchesFromSoup(theSoup, MatchContainers.byTeam)
+        return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
     def getMatchesByDay(self, theDate: str) -> [Match]:
-        lookForDate = self.mapToDate(theDate)
+        lookForDate = self._mapToDate(theDate)
         todayDate = datetime.today().date()
-        self.validateDateNotMoreThanWeekBefore(lookForDate)
-        url = self.getMatchesByDayUrl(lookForDate, todayDate)
+        self._validateDateNotMoreThanWeekBefore(lookForDate)
+        url = self._getMatchesByDayUrl(lookForDate, todayDate)
         theSoup = self.soupChef.makeSoup(url)
         matches = []
         if lookForDate < todayDate:
-            matches = self.getPastMatchesByDay(lookForDate)
+            matches = self._getPastMatchesByDay(lookForDate)
         elif lookForDate == todayDate:
-            matches = self.getTodaysMatches(theSoup)
+            matches = self._getTodaysMatches(theSoup)
         elif lookForDate > todayDate:
-            matches = self.getFutureMatchesByDay(theSoup, lookForDate)
+            matches = self._getFutureMatchesByDay(theSoup, lookForDate)
         return matches
 
     def getAllMatches(self, containerType: MatchContainers, offset: int = 0, numberPast: int = 20,
                       predefinedFilter: MatchType = MatchType.TopTier):
-        self.validateNumPastMatches(numberPast, containerType)
-        correctUrl = self.getCorrectGetAllMatchesUrl(containerType, predefinedFilter, offset)
+        self._validateNumPastMatches(numberPast, containerType)
+        correctUrl = self._getCorrectGetAllMatchesUrl(containerType, predefinedFilter, offset)
         theSoup = self.soupChef.makeSoup(correctUrl)
-        matches = self.getMatchesFromSoup(theSoup, containerType)
+        matches = self._getMatchesFromSoup(theSoup, containerType)
         if containerType == MatchContainers.past:
             matches = matches[:numberPast]
         return matches
 
-    def getCorrectFactory(self, containerType: MatchContainers) -> AbstractMatchFactory:
+    def _getCorrectFactory(self, containerType: MatchContainers) -> AbstractMatchFactory:
         match containerType:
             case MatchContainers.past:
                 return self.pastMatchFactory
@@ -88,7 +88,7 @@ class Scraper:
             case _:
                 raise TypeError("containerType has to be of type MatchContainer")
 
-    def getCorrectGetAllMatchesUrl(self, containerType: MatchContainers, predefinedFilter: MatchType, offset: int):
+    def _getCorrectGetAllMatchesUrl(self, containerType: MatchContainers, predefinedFilter: MatchType, offset: int):
         match containerType:
             case MatchContainers.past:
                 return self.urlBuilder.buildGetPastMatches(offset)
@@ -99,7 +99,7 @@ class Scraper:
             case _:
                 raise TypeError("containerType has to be of type MatchContainer")
 
-    def getMatchesByDayUrl(self, lookForDate, todayDate):
+    def _getMatchesByDayUrl(self, lookForDate, todayDate):
         if lookForDate < todayDate:
             return self.urlBuilder.buildGetPastMatches()
         elif lookForDate == todayDate:
@@ -107,37 +107,37 @@ class Scraper:
         elif lookForDate > todayDate:
             return self.urlBuilder.buildGetUpcomingMatchesUrl()
 
-    def mapToDate(self, theDate: str):
+    def _mapToDate(self, theDate: str):
         try:
             return datetime.strptime(theDate, "%m/%d/%Y").date()
         except ValueError:
             raise ValueError("Date has to be in the mm/dd/yyyy format.")
 
-    def validateDateNotMoreThanWeekBefore(self, lookForDate):
+    def _validateDateNotMoreThanWeekBefore(self, lookForDate):
         weekBeforeToday = datetime.today().date() - timedelta(days=7)
         if lookForDate < weekBeforeToday:
             raise ValueError("Cannot look up matches more than a week before today.")
 
-    def validateNumPastMatches(self, numberPast: int, containerType: MatchContainers):
-        if MatchContainers.past == containerType and numberPast > 100:
-            raise ValueError("Cannot get more than 100 past matches at a time. Please modify the offset if you want "
+    def _validateNumPastMatches(self, numberPast: int, containerType: MatchContainers):
+        if MatchContainers.past == containerType and numberPast > 30:
+            raise ValueError("Cannot get more than 30 past matches at a time. Please modify the offset if you want "
                              "to go further into the past")
 
-    def getFutureMatchesByDay(self, theSoup: soup.element.Tag, lookForDate) -> [FutureMatch]:
-        correctMatchDay = self.getCorrectFutureMatchDay(theSoup, lookForDate)
-        return self.getMatchesFromSoup(correctMatchDay, MatchContainers.future)
+    def _getFutureMatchesByDay(self, theSoup: element.Tag, lookForDate) -> [FutureMatch]:
+        correctMatchDay = self._getCorrectFutureMatchDay(theSoup, lookForDate)
+        return self._getMatchesFromSoup(correctMatchDay, MatchContainers.future)
 
-    def getTodaysMatches(self, theSoup: soup.element.Tag) -> [Match]:
+    def _getTodaysMatches(self, theSoup: element.Tag) -> [Match]:
         liveMatches = self.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
         todayDate = datetime.today().date()
-        upcomingMatchesToday = self.getFutureMatchesByDay(theSoup, todayDate)
+        upcomingMatchesToday = self._getFutureMatchesByDay(theSoup, todayDate)
         return liveMatches + upcomingMatchesToday
 
-    def getCorrectFutureMatchDay(self, theSoup: soup.element.Tag, lookForDate):
+    def _getCorrectFutureMatchDay(self, theSoup: element.Tag, lookForDate):
         matchDays = theSoup.find_all(class_="upcomingMatchesSection")
         correctMatchDay = None
         for matchDay in matchDays:
-            matchDayDate = self.mapToDate(matchDay.div.getText()[-10:])
+            matchDayDate = self._mapToDate(matchDay.div.getText()[-10:])
             if matchDayDate == lookForDate:
                 correctMatchDay = matchDay
                 break
@@ -145,7 +145,7 @@ class Scraper:
             raise ValueError("Could not find matches for ", lookForDate)
         return correctMatchDay
 
-    def getPastMatchesByDay(self, lookForDate) -> [PastMatch]:
+    def _getPastMatchesByDay(self, lookForDate) -> [PastMatch]:
         maxDays = 7
         daysSearched = 0
         soups = []
@@ -168,12 +168,12 @@ class Scraper:
                     daysSearched += 1
         soupsToSearch = []
         for theSoup in soups:
-            theDate = self.mapFromResultDateToDate(theSoup.div.getText())
+            theDate = self._mapFromResultDateToDate(theSoup.div.getText())
             if theDate == lookForDate:
                 soupsToSearch.append(theSoup)
         matches = []
         for soupToSearch in soupsToSearch:
-            matches.append(self.getMatchesFromSoup(soupToSearch, MatchContainers.past))
+            matches.append(self._getMatchesFromSoup(soupToSearch, MatchContainers.past))
         return matches
 
     def getSeriesStats(self, matchLink: str):
@@ -192,7 +192,7 @@ class Scraper:
             news.append(self.newsFactory.createNews(newsContainer))
         return news
 
-    def mapFromResultDateToDate(self, title):
+    def _mapFromResultDateToDate(self, title):
         dateFromTitle = title[12:]
         dateAsArray = dateFromTitle.split(" ")
         dateAsArray[1] = dateAsArray[1][:2]

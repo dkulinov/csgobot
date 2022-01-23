@@ -1,5 +1,4 @@
-import bs4
-from bs4 import BeautifulSoup as soup
+from bs4 import element
 from Commons.Types.Match.Match import Match
 from HLTVScraper.HLTVConsts.MatchDetails import MatchDetails
 
@@ -8,13 +7,13 @@ class AbstractMatchFactory:
     def __init__(self):
         pass
 
-    def validateContainer(self, container: bs4.element.Tag):
+    def validateContainer(self, container: element.Tag):
         pass
 
     def createMatch(self, container) -> Match:
         pass
 
-    def getLinkToGame(self, container: soup.element.Tag) -> str:
+    def getLinkToGame(self, container: element.Tag) -> str:
         hltvHomePage = "https://www.hltv.org"
         gameLink = hltvHomePage + container.a.get('href')
         return gameLink
@@ -22,7 +21,7 @@ class AbstractMatchFactory:
     def getTeams(self, container, HLTVTeamClassName):
         self.validateHLTVTeamClassName(HLTVTeamClassName)
         teamNames = []
-        teams = container.find_all(class_=HLTVTeamClassName)
+        teams = container.find_all(class_=HLTVTeamClassName.value)
         for team in teams:
             teamNames.append(team.getText())
         return teamNames
@@ -30,7 +29,7 @@ class AbstractMatchFactory:
     def getTeamLogos(self, container, HLTVTeamLogoClassName):
         self.validateHLTVTeamLogoClassName(HLTVTeamLogoClassName)
         teamLogoLinks = []
-        teamLogos = container.find_all(class_=HLTVTeamLogoClassName)
+        teamLogos = container.find_all(class_=HLTVTeamLogoClassName.value)
         for teamLogo in teamLogos:
             teamLogoLinks.append(teamLogo.get('src'))
         return teamLogoLinks

@@ -4,7 +4,7 @@ from enum import Enum
 class MatchDetails(Enum):
     pastTeam = "team"
     cuTeam = "matchTeamName"
-    futureTeam = "matchTeamName"
+    futureTeam = "matchTeam"
     byTeamMatchTeam = "team-name"
     pastLogo = "team-logo"
     cuLogo = "matchTeamLogo"

@@ -30,8 +30,11 @@ class AbstractMatchFactory:
         self.validateHLTVTeamLogoClassName(HLTVTeamLogoClassName)
         teamLogoLinks = []
         teamLogos = container.find_all(class_=HLTVTeamLogoClassName.value)
-        for teamLogo in teamLogos:
-            teamLogoLinks.append(teamLogo.get('src'))
+        teamLogoLinks.append(teamLogos[0].get('src'))
+        if len(teamLogos) > 1:
+            teamLogoLinks.append(teamLogos[-1].get('src'))
+        else:
+            teamLogoLinks.append("")
         return teamLogoLinks
 
     def validateHLTVTeamClassName(self, HLTVTeamClassName):

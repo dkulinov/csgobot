@@ -10,7 +10,8 @@ class CurrentMatchFactory(AbstractMatchFactory):
         pass
 
     def validateContainer(self, container: element.Tag):
-        if container['class'] != MatchContainers.present.value:
+        containerClasses: list = container['class']
+        if MatchContainers.present.value not in containerClasses:
             raise TypeError("Was not able to create Current Match from given container.")
 
     def createMatch(self, container: element.Tag) -> CurrentMatch:
@@ -24,7 +25,7 @@ class CurrentMatchFactory(AbstractMatchFactory):
         return CurrentMatch(team1, team2, team1Logo, team2Logo, link, team1CuMapScore, team2CuMapScore, team1MapsWon, team2MapsWon, bestOf)
 
     def getMapScore(self, container: element.Tag) -> [int]:
-        resultContainers = container.find_all(class_=MatchDetails.cuMapScore)
+        resultContainers = container.find_all(class_=MatchDetails.cuMapScore.value)
         scores = []
         for result in resultContainers:
             scores.append(int(result.span.getText()))
@@ -32,7 +33,7 @@ class CurrentMatchFactory(AbstractMatchFactory):
 
     def getCurrentScore(self, container: element.Tag) -> [int]:
         scores = []
-        for score in container.find_all(class_=MatchDetails.cuScore):
+        for score in container.find_all(class_=MatchDetails.cuScore.value):
             scores.append(int(score.getText()))
         return scores
 

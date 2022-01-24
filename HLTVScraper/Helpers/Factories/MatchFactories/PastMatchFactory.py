@@ -10,15 +10,12 @@ class PastMatchFactory(AbstractMatchFactory):
         pass
 
     def validateContainer(self, container: element.Tag):
-        containerClass: list = container['class']
-        try:
-            containerClass.index(MatchContainers.past.value)
-        except ValueError:
+        containerClasses: list = container['class']
+        if MatchContainers.past.value not in containerClasses:
             raise TypeError("Was not able to create Past Match from given container.")
 
     def createMatch(self, container: element.Tag) -> PastMatch:
         self.validateContainer(container)
-        print(container.prettify())
         team1, team2 = self.getTeams(container, MatchDetails.pastTeam)
         team1Logo, team2Logo = self.getTeamLogos(container, MatchDetails.pastLogo)
         link = self.getLinkToGame(container)

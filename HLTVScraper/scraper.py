@@ -119,7 +119,7 @@ class Scraper:
             raise ValueError("Cannot look up matches more than a week before today.")
 
     def _validateNumPastMatches(self, numberPast: int, containerType: MatchContainers):
-        if MatchContainers.past == containerType and numberPast > 30:
+        if MatchContainers.past == containerType and (numberPast > 30 or numberPast < 0):
             raise ValueError("Cannot get more than 30 past matches at a time. Please modify the offset if you want "
                              "to go further into the past")
 
@@ -201,4 +201,3 @@ class Scraper:
             return datetime.strptime(theDateStr, "%B %d %Y").date()
         except ValueError:
             raise ValueError("Could not transform from result title to date")
-

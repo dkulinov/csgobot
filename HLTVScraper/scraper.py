@@ -45,9 +45,13 @@ class Scraper:
             matches.append(correctFactory.createMatch(matchContainer))
         return matches
 
-    def getMatchesByTeam(self, team: str, timeFrame: MatchTime = MatchTime.future.value) -> [Match]:
+    def getMatchesByTeam(self, team: str, timeFrame: MatchTime = MatchTime.future) -> [Match]:
         url = self.urlBuilder.buildGetMatchesByTeamUrl(team)
-        theSoup = self.soupChef.makeSoup(url).find_all(class_="match-table")[timeFrame.value]
+        theSoup = self.soupChef.makeSoup(url)
+        emptyFutureMatches = theSoup.find(id='matchesBox').find(class_='empty-state')
+        if timeFrame == MatchTime.future and emptyFutureMatches:
+            return []
+        theSoup = theSoup.find_all(class_="match-table")[timeFrame.value]
         return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
     def getMatchesByDay(self, theDate: str) -> [Match]:
@@ -201,3 +205,7 @@ class Scraper:
             return datetime.strptime(theDateStr, "%B %d %Y").date()
         except ValueError:
             raise ValueError("Could not transform from result title to date")
+
+    # Tournaments
+
+    # Team rankings

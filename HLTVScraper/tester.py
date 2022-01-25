@@ -1,6 +1,7 @@
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup as soup
 
+from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.Match.CurrentMatch import CurrentMatch
 from Commons.Types.Match.FutureMatch import FutureMatch
 from Commons.Types.Match.PastMatch import PastMatch
@@ -65,11 +66,13 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 #     else:
 #         print("BO{} at {}: {} {} VS {} {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.team1, futureMatch.team1Logo, futureMatch.team2, futureMatch.team2Logo, futureMatch.link))
 
+
+# GET MATCHES BY TEAM (future)
+futureMatchesByTeam: [MatchByTeam] = scraper.getMatchesByTeam("navi")
+for futureMatchByTeam in futureMatchesByTeam:
+    print("{}. {} {} {} vs {} {} {}. MORE: {}".format(futureMatchByTeam.epochTime, futureMatchByTeam.team1, futureMatchByTeam.team1Logo, futureMatchByTeam.team1Score, futureMatchByTeam.team2Score, futureMatchByTeam.team2Logo, futureMatchByTeam.team2, futureMatchByTeam.link))
+
 # GET MATCHES BY DAY
-
-
-# GET MATCHES BY TEAM
-
 
 # GET SERIES STATS
 

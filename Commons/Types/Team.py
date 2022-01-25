@@ -55,7 +55,7 @@ class HLTVTeams:
         }
 
     def getTeamId(self, team: str):
-        return self.inputTeams[team]
+        return self.HLTV_teams[team]
 
     def getIsValid(self, team: str):
         return team in self.HLTV_teams.keys()

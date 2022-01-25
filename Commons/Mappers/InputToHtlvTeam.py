@@ -1,11 +1,11 @@
-from DiscordBot.InputTeams import InputTeams
+from DiscordBot.InputTeams import getIsValid
 from Commons.Types.Team import HLTVTeams
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 
 
-# TODO: turn into switch statement
+# TODO: turn into switch statement or dict
 def mapInputToCorrectHltvTeam(inputTeam: str) -> str:
-    if not InputTeams.getIsValid(inputTeam):
+    if not getIsValid(inputTeam):
         raise InvalidTeamException("This team isn't part of the valid inputs.")
 
     lowerCaseInputTeam = inputTeam.strip().lower().replace(" ", "-")
@@ -31,7 +31,7 @@ def mapInputToCorrectHltvTeam(inputTeam: str) -> str:
     elif lowerCaseInputTeam == "es":
         hltvTeamName = "extra-salt"
 
-    if not HLTVTeams.getIsValid(hltvTeamName):
+    if not HLTVTeams().getIsValid(hltvTeamName):
         raise InvalidTeamException("This team isn't part of the supported HLTV teams")
 
     return hltvTeamName

@@ -1,6 +1,8 @@
 from bs4 import element
 
-from Commons.Types.SeriesStats import SeriesStats, MatchStats, PlayerStats
+from Commons.Types.SeriesStats.SeriesStats import SeriesStats
+from Commons.Types.SeriesStats.MatchStats import  MatchStats
+from Commons.Types.SeriesStats.PlayerStats import PlayerStats
 
 
 class SeriesFactory:
@@ -19,7 +21,7 @@ class SeriesFactory:
         if not countdownContainer:
             raise ValueError("The URL provided is incorrect. Please provide a url to a specific match")
         if countdownContainer.getText().upper() != "MATCH OVER":
-            raise ValueError("The the match is not yet over")
+            raise ValueError("The match is not yet over")
 
     def getTeamNames(self, theSoup: element.Tag) -> [str]:
         seriesContainer = theSoup.find(class_="teamsBox")
@@ -34,7 +36,7 @@ class SeriesFactory:
         teamContainers = seriesContainer.find_all(class_="team")
         teamMapsWon = []
         for teamContainer in teamContainers:
-            teamMapsWon.append(int(teamContainer.div.div.getText()))
+            teamMapsWon.append(int(teamContainer.div.find('div', recursive=False).getText()))
         return teamMapsWon
 
     def getMatches(self, theSoup: element.Tag) -> [MatchStats]:
@@ -43,7 +45,7 @@ class SeriesFactory:
         for index, mapContainer in enumerate(mapContainers):
             if "played" in mapContainer.div['class']:
                 team1Score, team2Score = self.getMapScores(mapContainer)
-                team1Stats, team2Stats = self.getMapStats(index+1, theSoup)
+                team1Stats, team2Stats = self.getMapStats(index + 1, theSoup)
                 mapName = self.getMapName(mapContainer)
                 matchStats.append(MatchStats(team1Stats, team2Stats, team1Score, team2Score, mapName))
 
@@ -64,8 +66,8 @@ class SeriesFactory:
     def getMapStats(self, mapNumber, theSoup: element.Tag) -> [[PlayerStats]]:
         mapStats = theSoup.find_all(class_="stats-content")[mapNumber]
         statsByTeam = mapStats.find_all(class_="totalstats")
-        team1Rows = statsByTeam[0].tbody.find_all('tr')[1:]
-        team2Rows = statsByTeam[1].tbody.find_all('tr')[1:]
+        team1Rows = statsByTeam[0].find_all('tr')[1:]
+        team2Rows = statsByTeam[1].find_all('tr')[1:]
         team1Stats = []
         team2Stats = []
         for team1Row in team1Rows:

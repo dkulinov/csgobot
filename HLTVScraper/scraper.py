@@ -55,7 +55,7 @@ class Scraper:
         return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
     def getMatchesByDay(self, theDate: str) -> [Match]:
-        lookForDate = self._mapToDate(theDate)
+        lookForDate = self._mapToDate(theDate, "%m/%d/%Y")
         todayDate = datetime.today().date()
         self._validateDateNotMoreThanWeekBefore(lookForDate)
         url = self._getMatchesByDayUrl(lookForDate, todayDate)
@@ -72,10 +72,13 @@ class Scraper:
     def getAllMatches(self, containerType: MatchContainers, offset: int = 0, numberPast: int = 20,
                       predefinedFilter: MatchType = MatchType.TopTier):
         self._validateNumPastMatches(numberPast, containerType)
+        lookingForPast = containerType == MatchContainers.past
         correctUrl = self._getCorrectGetAllMatchesUrl(containerType, predefinedFilter, offset)
         theSoup = self.soupChef.makeSoup(correctUrl)
+        if lookingForPast:
+            theSoup = theSoup.find(class_="allres")
         matches = self._getMatchesFromSoup(theSoup, containerType)
-        if containerType == MatchContainers.past:
+        if lookingForPast:
             matches = matches[:numberPast]
         return matches
 
@@ -111,9 +114,9 @@ class Scraper:
         elif lookForDate > todayDate:
             return self.urlBuilder.buildGetUpcomingMatchesUrl()
 
-    def _mapToDate(self, theDate: str):
+    def _mapToDate(self, theDate: str, dateFormat: str):
         try:
-            return datetime.strptime(theDate, "%m/%d/%Y").date()
+            return datetime.strptime(theDate, dateFormat).date()
         except ValueError:
             raise ValueError("Date has to be in the mm/dd/yyyy format.")
 
@@ -141,11 +144,12 @@ class Scraper:
         matchDays = theSoup.find_all(class_="upcomingMatchesSection")
         correctMatchDay = None
         for matchDay in matchDays:
-            matchDayDate = self._mapToDate(matchDay.div.getText()[-10:])
+            # print(matchDay.find_next().getText())  # skips next day?
+            matchDayDate = self._mapToDate(matchDay.find_next().getText()[-10:], "%Y-%m-%d")
             if matchDayDate == lookForDate:
                 correctMatchDay = matchDay
                 break
-        if not correctMatchDay:
+        if correctMatchDay is None:
             raise ValueError("Could not find matches for ", lookForDate)
         return correctMatchDay
 
@@ -156,28 +160,28 @@ class Scraper:
         offset = 0
         while daysSearched < maxDays:
             url = self.urlBuilder.buildGetPastMatches(offset)
-            soup = self.soupChef.makeSoup(url)
+            soup = self.soupChef.makeSoup(url).find(class_="allres")
             dayResultContainers = soup.find_all(class_="results-sublist")
-            soups.append(dayResultContainers)
+            soups.extend(dayResultContainers)
             daysSearched += len(dayResultContainers)
             offset += 100
-            lastDayTitle = dayResultContainers[-1].div.getText()
+            lastDayTitle = dayResultContainers[-1].find_next().getText()
             while daysSearched == maxDays:
                 url = self.urlBuilder.buildGetPastMatches(offset)
                 soup = self.soupChef.makeSoup(url)
-                dayResultContainers = soup.find_all(class_="result-sublist")
+                dayResultContainers = soup.find_all(class_="results-sublist")
                 soups.append(dayResultContainers[0])
                 offset += 100
-                if dayResultContainers[-1].div.getText() != lastDayTitle:
+                if dayResultContainers[-1].find_next().getText() != lastDayTitle:
                     daysSearched += 1
         soupsToSearch = []
         for theSoup in soups:
-            theDate = self._mapFromResultDateToDate(theSoup.div.getText())
+            theDate = self._mapFromResultDateToDate(theSoup.find_next().getText())
             if theDate == lookForDate:
                 soupsToSearch.append(theSoup)
         matches = []
         for soupToSearch in soupsToSearch:
-            matches.append(self._getMatchesFromSoup(soupToSearch, MatchContainers.past))
+            matches.extend(self._getMatchesFromSoup(soupToSearch, MatchContainers.past))
         return matches
 
     def getSeriesStats(self, matchLink: str):
@@ -200,7 +204,7 @@ class Scraper:
         dateFromTitle = title[12:]
         dateAsArray = dateFromTitle.split(" ")
         dateAsArray[1] = dateAsArray[1][:2]
-        theDateStr = "".join(dateAsArray)
+        theDateStr = dateAsArray[0] + " " + dateAsArray[1] + " " + dateAsArray[2]
         try:
             return datetime.strptime(theDateStr, "%B %d %Y").date()
         except ValueError:

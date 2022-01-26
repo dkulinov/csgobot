@@ -14,6 +14,7 @@ from HLTVScraper.Helpers.Factories.MatchFactories.MatchFactory import AbstractMa
 from HLTVScraper.Helpers.Factories.MatchFactories.PastMatchFactory import PastMatchFactory
 from HLTVScraper.Helpers.Factories.NewsFactory import NewsFactory
 from HLTVScraper.Helpers.Factories.SeriesFactory import SeriesFactory
+from HLTVScraper.Helpers.Factories.TopTeamFactory import TopTeamFactory
 
 
 class Scraper:
@@ -27,6 +28,7 @@ class Scraper:
             seriesFactory: SeriesFactory,
             matchByTeamFactory: MatchByTeamFactory,
             newsFactory: NewsFactory,
+            topTeamFactory: TopTeamFactory,
     ):
         self.urlBuilder = urlBuilder
         self.pastMatchFactory = pastMatchFactory
@@ -36,6 +38,7 @@ class Scraper:
         self.seriesFactory = seriesFactory
         self.soupChef = soupChef
         self.newsFactory = newsFactory
+        self.topTeamFactory = topTeamFactory
 
     def _getMatchesFromSoup(self, theSoup: element.Tag, containerType: MatchContainers):
         matches = []
@@ -54,6 +57,8 @@ class Scraper:
         theSoup = theSoup.find_all(class_="match-table")[timeFrame.value]
         return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
+    # TODO: check if cookie can be set for timezone. (hltvTimeZone: America/Phoenix)
+    # https://stackoverflow.com/questions/3467114/how-are-cookies-passed-in-the-http-protocol#:~:text=Cookies%20are%20passed%20as%20HTTP,(server%20%2D%3E%20client).
     def getMatchesByDay(self, theDate: str) -> [Match]:
         lookForDate = self._mapToDate(theDate, "%m/%d/%Y")
         todayDate = datetime.today().date()
@@ -144,7 +149,6 @@ class Scraper:
         matchDays = theSoup.find_all(class_="upcomingMatchesSection")
         correctMatchDay = None
         for matchDay in matchDays:
-            # print(matchDay.find_next().getText())  # skips next day?
             matchDayDate = self._mapToDate(matchDay.find_next().getText()[-10:], "%Y-%m-%d")
             if matchDayDate == lookForDate:
                 correctMatchDay = matchDay
@@ -210,6 +214,14 @@ class Scraper:
         except ValueError:
             raise ValueError("Could not transform from result title to date")
 
-    # Tournaments
-
     # Team rankings
+    def getTopTeams(self):
+        url = self.urlBuilder.buildGetTopTeamsUrl()
+        theSoup = self.soupChef.makeSoup(url)
+        topTeams = []
+        topTeamContainers = theSoup.find_all(class_="ranked-team")
+        for topTeamContainer in topTeamContainers:
+            topTeams.append(self.topTeamFactory.createTopTeam(topTeamContainer))
+        return topTeams
+
+    # Tournaments

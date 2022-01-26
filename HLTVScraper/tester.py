@@ -7,6 +7,7 @@ from Commons.Types.Match.FutureMatch import FutureMatch
 from Commons.Types.Match.PastMatch import PastMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.SeriesStats import SeriesStats
+from Commons.Types.TopTeam import TopTeam
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTime import MatchTime
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
@@ -15,6 +16,7 @@ from HLTVScraper.Helpers.Factories.MatchFactories.MatchByTeamFactory import Matc
 from HLTVScraper.Helpers.Factories.MatchFactories.PastMatchFactory import PastMatchFactory
 from HLTVScraper.Helpers.Factories.NewsFactory import NewsFactory
 from HLTVScraper.Helpers.Factories.SeriesFactory import SeriesFactory
+from HLTVScraper.Helpers.Factories.TopTeamFactory import TopTeamFactory
 from HLTVScraper.Helpers.SoupChef import SoupChef
 from HLTVScraper.Helpers.UrlBuilder import URLBuilder
 from HLTVScraper.scraper import Scraper
@@ -41,9 +43,10 @@ futureMatchFactory = FutureMatchFactory()
 seriesFactory = SeriesFactory()
 matchByTeamFactory = MatchByTeamFactory()
 newsFactory = NewsFactory()
+topTeamFactory = TopTeamFactory()
 
 scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, futureMatchFactory,
-                  seriesFactory, matchByTeamFactory, newsFactory)
+                  seriesFactory, matchByTeamFactory, newsFactory, topTeamFactory)
 
 # NEWS:
 # news = scraper.getNews()
@@ -97,6 +100,7 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 # for matchByDay in matchesByDay:
 #     print("{} {} {} VS {} {} {}. MORE: {}".format(matchByDay.team1, matchByDay.team1Logo, matchByDay.team1Score, matchByDay.team2Score, matchByDay.team2, matchByDay.team2Logo, matchByDay.link))
 
+# TODO: test this
 # GET MATCHES BY DAY (current)
 # matchesByDay: [CurrentMatch] = scraper.getMatchesByDay("01/25/2022")
 # for matchByDay in matchesByDay:
@@ -104,12 +108,15 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 
 
 # GET MATCHES BY DAY (future)
-matchesByDay: [FutureMatch] = scraper.getMatchesByDay("01/26/2022")
-for futureMatch in matchesByDay:
-    if futureMatch.emptyMatchDescription:
-        print("BO{} at {}: {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.emptyMatchDescription, futureMatch.link))
-    else:
-        print("BO{} at {}: {} {} VS {} {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.team1, futureMatch.team1Logo, futureMatch.team2, futureMatch.team2Logo, futureMatch.link))
+# matchesByDay: [FutureMatch] = scraper.getMatchesByDay("01/26/2022")
+# for futureMatch in matchesByDay:
+#     if futureMatch.emptyMatchDescription:
+#         print("BO{} at {}: {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.emptyMatchDescription, futureMatch.link))
+#     else:
+#         print("BO{} at {}: {} {} VS {} {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.team1, futureMatch.team1Logo, futureMatch.team2, futureMatch.team2Logo, futureMatch.link))
 
+# Get Top Teams
+# topTeams: TopTeam = scraper.getTopTeams()
+# for topTeam in topTeams:
+#     print("{} {} {} {}".format(topTeam.teamName, topTeam.teamLogo, topTeam.points, topTeam.change))
 
-# print(len(matchesByDay))

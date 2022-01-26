@@ -8,10 +8,12 @@ class URLBuilder:
     def __init__(self):
         self.baseUrl = "https://www.hltv.org"
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36",
+            # TODO: check if cookie can be set for timezone
+            # "Set-Cookie": "hltvTimeZone=America/Phoenix"
         }
 
-    def buildGetUpcomingMatchesUrl(self, predefinedFilter: MatchType = MatchType.TopTier) -> str:
+    def buildGetUpcomingMatchesUrl(self, predefinedFilter: MatchType = MatchType.Default) -> str:
         url = self.baseUrl + '/matches'
         url += "?predefinedFilter=" if predefinedFilter != MatchType.Default else ""
         url += predefinedFilter.value
@@ -27,6 +29,9 @@ class URLBuilder:
 
     def buildGetNewsUrl(self):
         return self.baseUrl
+
+    def buildGetTopTeamsUrl(self):
+        return self.baseUrl + "/ranking/teams"
 
     def getHeaders(self):
         return self.headers

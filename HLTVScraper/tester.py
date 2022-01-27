@@ -60,9 +60,9 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 
 # TODO: test this
 # GET ALL MATCHES (live)
-# liveMatches: [CurrentMatch] = scraper.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
-# for liveMatch in liveMatches:
-#     print("BO{}: {} {} {} {} VS {} {} {} {}. MORE: {}".format(liveMatch.bestOf, liveMatch.team1, liveMatch.team1Logo, liveMatch.team1CuMapScore, liveMatch.team1MapsWon, liveMatch.team2, liveMatch.team2Logo, liveMatch.team2CuMapScore, liveMatch.team2MapsWon, liveMatch.link))
+liveMatches: [CurrentMatch] = scraper.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
+for liveMatch in liveMatches:
+    print("BO{}: {} {} {} {} VS {} {} {} {}. MORE: {}".format(liveMatch.bestOf, liveMatch.team1, liveMatch.team1Logo, liveMatch.team1CuMapScore, liveMatch.team1MapsWon, liveMatch.team2, liveMatch.team2Logo, liveMatch.team2CuMapScore, liveMatch.team2MapsWon, liveMatch.link))
 
 # GET ALL MATCHES (future)
 # futureMatches: [FutureMatch] = scraper.getAllMatches(MatchContainers.future, predefinedFilter=MatchType.TopTier)
@@ -102,7 +102,7 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 
 # TODO: test this
 # GET MATCHES BY DAY (current)
-# matchesByDay: [CurrentMatch] = scraper.getMatchesByDay("01/26/2022")
+# matchesByDay: [CurrentMatch] = scraper.getMatchesByDay("01/27/2022")
 # for matchByDay in matchesByDay:
 #     print("{} {} {} VS {} {} {}. MORE: {}".format(matchByDay.team1, matchByDay.team1Logo, matchByDay.team1Score, matchByDay.team2Score, matchByDay.team2, matchByDay.team2Logo, matchByDay.link))
 
@@ -116,7 +116,7 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 #         print("BO{} at {}: {} {} VS {} {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.team1, futureMatch.team1Logo, futureMatch.team2, futureMatch.team2Logo, futureMatch.link))
 
 # Get Top Teams
-topTeams: TopTeam = scraper.getTopTeams()
-for topTeam in topTeams:
-    print("{} {} {} {}".format(topTeam.teamName, topTeam.teamLogo, topTeam.points, topTeam.change))
+# topTeams: TopTeam = scraper.getTopTeams()
+# for topTeam in topTeams:
+#     print("{} {} {} {}".format(topTeam.teamName, topTeam.teamLogo, topTeam.points, topTeam.change))
 

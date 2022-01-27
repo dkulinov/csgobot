@@ -1,3 +1,5 @@
+from time import sleep
+
 from bs4 import element
 from Commons.Types.Match.CurrentMatch import CurrentMatch
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
@@ -28,17 +30,19 @@ class CurrentMatchFactory(AbstractMatchFactory):
         resultContainers = container.find_all(class_=MatchDetails.cuMapScore.value)
         scores = []
         for result in resultContainers:
-            scores.append(int(result.span.getText()))
+            # print(result.span.getText())
+            scores.append(int(result.span.getText().strip()))
         return scores
 
     def getCurrentScore(self, container: element.Tag) -> [int]:
         scores = []
         for score in container.find_all(class_=MatchDetails.cuScore.value):
-            scores.append(int(score.getText()))
+            # print(score.getText())
+            scores.append(int(score.getText().strip()))
         return scores
 
     def getBestOf(self, container: element.Tag) -> int:
-        return int(container.find(class_=MatchDetails.bestOf).getText()[-1])
+        return int(container.find(class_=MatchDetails.bestOf.value).getText()[-1])
 
 
 

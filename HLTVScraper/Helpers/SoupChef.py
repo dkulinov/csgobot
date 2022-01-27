@@ -1,4 +1,5 @@
 # from urllib.request import Request, urlopen
+from time import sleep
 
 from bs4 import BeautifulSoup as soup, element
 
@@ -18,5 +19,7 @@ class SoupChef:
         # TODO: check if this can be used https://stackoverflow.com/questions/59665773/why-render-requests-html-doesnt-scrape-dynamic-content
         driver = webdriver.Chrome(ChromeDriverManager().install())
         driver.get(url)
+        if url == "https://www.hltv.org/matches":
+            sleep(1)
         html = driver.page_source
         return soup(html, "html.parser")

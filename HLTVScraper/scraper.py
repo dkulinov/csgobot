@@ -140,10 +140,14 @@ class Scraper:
         return self._getMatchesFromSoup(correctMatchDay, MatchContainers.future)
 
     def _getTodaysMatches(self, theSoup: element.Tag) -> [Match]:
-        liveMatches = self.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
         todayDate = datetime.today().date()
-        upcomingMatchesToday = self._getFutureMatchesByDay(theSoup, todayDate)
-        return liveMatches + upcomingMatchesToday
+        previousMatches = self._getPastMatchesByDay(todayDate)
+        liveMatches = self.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
+        try:
+            upcomingMatchesToday = self._getFutureMatchesByDay(theSoup, todayDate)
+        except ValueError:
+            upcomingMatchesToday = []
+        return liveMatches + upcomingMatchesToday + previousMatches
 
     def _getCorrectFutureMatchDay(self, theSoup: element.Tag, lookForDate):
         matchDays = theSoup.find_all(class_="upcomingMatchesSection")

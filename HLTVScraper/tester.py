@@ -96,19 +96,19 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 #               team2Stat.kill_assist_survive_traded, team2Stat.rating)
 
 # GET MATCHES BY DAY (past)
-# matchesByDay: [PastMatch] = scraper.getMatchesByDay("01/24/2022")
+# matchesByDay: [PastMatch] = scraper.getMatchesByDay("01/25/2022")
 # for matchByDay in matchesByDay:
 #     print("{} {} {} VS {} {} {}. MORE: {}".format(matchByDay.team1, matchByDay.team1Logo, matchByDay.team1Score, matchByDay.team2Score, matchByDay.team2, matchByDay.team2Logo, matchByDay.link))
 
 # TODO: test this
 # GET MATCHES BY DAY (current)
-# matchesByDay: [CurrentMatch] = scraper.getMatchesByDay("01/25/2022")
+# matchesByDay: [CurrentMatch] = scraper.getMatchesByDay("01/26/2022")
 # for matchByDay in matchesByDay:
 #     print("{} {} {} VS {} {} {}. MORE: {}".format(matchByDay.team1, matchByDay.team1Logo, matchByDay.team1Score, matchByDay.team2Score, matchByDay.team2, matchByDay.team2Logo, matchByDay.link))
 
 
 # GET MATCHES BY DAY (future)
-# matchesByDay: [FutureMatch] = scraper.getMatchesByDay("01/26/2022")
+# matchesByDay: [FutureMatch] = scraper.getMatchesByDay("01/29/2022")
 # for futureMatch in matchesByDay:
 #     if futureMatch.emptyMatchDescription:
 #         print("BO{} at {}: {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.emptyMatchDescription, futureMatch.link))
@@ -116,7 +116,7 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 #         print("BO{} at {}: {} {} VS {} {}. MORE: {}".format(futureMatch.bestOf, futureMatch.epochTime, futureMatch.team1, futureMatch.team1Logo, futureMatch.team2, futureMatch.team2Logo, futureMatch.link))
 
 # Get Top Teams
-# topTeams: TopTeam = scraper.getTopTeams()
-# for topTeam in topTeams:
-#     print("{} {} {} {}".format(topTeam.teamName, topTeam.teamLogo, topTeam.points, topTeam.change))
+topTeams: TopTeam = scraper.getTopTeams()
+for topTeam in topTeams:
+    print("{} {} {} {}".format(topTeam.teamName, topTeam.teamLogo, topTeam.points, topTeam.change))
 

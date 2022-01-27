@@ -15,6 +15,7 @@ class SoupChef:
         # headers = self.urlBuilder.getHeaders()
         # req = Request(url, headers=headers)
         # res = urlopen(req, timeout=20)
+        # TODO: check if this can be used https://stackoverflow.com/questions/59665773/why-render-requests-html-doesnt-scrape-dynamic-content
         driver = webdriver.Chrome(ChromeDriverManager().install())
         driver.get(url)
         html = driver.page_source

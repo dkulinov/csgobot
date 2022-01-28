@@ -117,7 +117,7 @@ def top_teams_embed(teams: [TopTeam], author_name, author_icon):
         else:
             rank_change_title = f'({team.change})'
         embed.add_field(name=f'#{str(rank + 1)}  {rank_change_title}',
-                        value=f'[{team.teamName}]({"https://hltv.org"}): {team.points[1:-1]}',
+                        value=f'[{team.teamName}]({team.link}): {team.points[1:-1]}',
                         inline=True)
     return embed
 
@@ -139,6 +139,7 @@ def news_embed(recent_news: [News], author_name, author_icon):
     embed = discord.Embed(title=f'HLTV\'s recent news:', url=urlBuilder.buildGetNewsUrl(),
                           color=discord.Color.teal())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    embed.set_thumbnail(url="https://i.ibb.co/Zm6hzzN/Breaking-news-World-news-with-map-backgorund-Breaking-news-TV-concept-Vector-stock.jpg")
     for the_news in recent_news:
         embed.add_field(name="\u200b", value=f'[{the_news.title}]({the_news.link})', inline=False)
     return embed

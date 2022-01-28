@@ -16,7 +16,8 @@ class TopTeamFactory:
         teamLogo = self.getTeamLogo(container)
         points = self.getPoints(container)
         change = self.getChange(container)
-        return TopTeam(teamName, teamLogo, points, change)
+        link = self.getLink(container)
+        return TopTeam(teamName, teamLogo, points, change, link)
 
     def getTeamName(self, container: element.Tag) -> str:
         return container.find(class_="name").getText()
@@ -29,3 +30,6 @@ class TopTeamFactory:
 
     def getChange(self, container: element.Tag) -> str:
         return container.find(class_="change").getText()
+
+    def getLink(self, container: element.Tag)-> str:
+        return "https://hltv.org" + container.find(class_="more").a.get('href')

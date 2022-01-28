@@ -103,13 +103,13 @@ async def top_teams_error(ctx, error):
 def error_embed(message, author_name, author_icon):
     embed = discord.Embed(title='Error:', description=message, color=discord.Color.red())
     embed.set_author(name=author_name, icon_url=author_icon)
-    embed.set_thumbnail(url='https://i.ibb.co/dKDw6y0/error.jpg')
+    embed.set_image(url='https://i.ibb.co/dKDw6y0/error.jpg')
     return embed
 
 
 def top_teams_embed(teams: [TopTeam], author_name, author_icon):
     embed = discord.Embed(title=f'HLTV Top {len(teams)} teams:', url=urlBuilder.buildGetTopTeamsUrl(), color=discord.Color.gold())
-    embed.set_author(name=f'hey @{author_name}, here you go!', icon_url=author_icon)
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     for rank, team in enumerate(teams):
         if team.change == "-":
             rank_change_title = ''
@@ -120,5 +120,7 @@ def top_teams_embed(teams: [TopTeam], author_name, author_icon):
                         inline=True)
     return embed
                                          
+
+
 
 bot.run(TOKEN)

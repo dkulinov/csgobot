@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from Commons.Types.News import News
 from Commons.Types.TopTeam import TopTeam
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.FutureMatchFactory import FutureMatchFactory
@@ -76,7 +77,7 @@ async def echo(ctx, *arg):
 
 
 @bot.command(name="top_teams",
-             help="Lists HLTV's Top 25 Teams. You can also specify number of teams you want to see as a number (Between 1 and 25).")
+             help="Shows HLTV's Top 25 Teams. You can also specify number of teams you want to see as a number (Between 1 and 25).")
 async def top_teams(ctx, number: int = 25):
     if number < 1:
         await ctx.send("Can't pass a number less than 1")
@@ -92,7 +93,6 @@ async def top_teams(ctx, number: int = 25):
 
 @top_teams.error
 async def top_teams_error(ctx, error):
-    print(error)
     if isinstance(error, commands.BadArgument):
         message = "Please provide a whole number."
     else:
@@ -108,19 +108,40 @@ def error_embed(message, author_name, author_icon):
 
 
 def top_teams_embed(teams: [TopTeam], author_name, author_icon):
-    embed = discord.Embed(title=f'HLTV Top {len(teams)} teams:', url=urlBuilder.buildGetTopTeamsUrl(), color=discord.Color.gold())
+    embed = discord.Embed(title=f'HLTV Top {len(teams)} teams:', url=urlBuilder.buildGetTopTeamsUrl(),
+                          color=discord.Color.gold())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     for rank, team in enumerate(teams):
         if team.change == "-":
             rank_change_title = ''
         else:
             rank_change_title = f'({team.change})'
-        embed.add_field(name=f'#{str(rank+1)}  {rank_change_title}',
+        embed.add_field(name=f'#{str(rank + 1)}  {rank_change_title}',
                         value=f'[{team.teamName}]({"https://hltv.org"}): {team.points[1:-1]}',
                         inline=True)
     return embed
-                                         
 
+
+@bot.command(name="news", help="Shows HLTV's recent news.")
+async def news(ctx):
+    recent_news = scraper.getNews()
+    await ctx.send(embed=news_embed(recent_news[:10], ctx.author.display_name, ctx.author.avatar_url))
+
+
+@news.error
+async def top_teams_error(ctx, error):
+    print(error)
+    message = ":( Something went wrong. Please try again."
+    await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
+
+
+def news_embed(recent_news: [News], author_name, author_icon):
+    embed = discord.Embed(title=f'HLTV\'s recent news:', url=urlBuilder.buildGetNewsUrl(),
+                          color=discord.Color.teal())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    for the_news in recent_news:
+        embed.add_field(name="\u200b", value=f'[{the_news.title}]({the_news.link})', inline=False)
+    return embed
 
 
 bot.run(TOKEN)

@@ -30,15 +30,13 @@ class CurrentMatchFactory(AbstractMatchFactory):
         resultContainers = container.find_all(class_=MatchDetails.cuMapScore.value)
         scores = []
         for result in resultContainers:
-            # print(result.span.getText())
-            scores.append(int(result.span.getText().strip()))
+            scores.append(result.span.getText().strip())
         return scores
 
     def getCurrentScore(self, container: element.Tag) -> [int]:
         scores = []
         for score in container.find_all(class_=MatchDetails.cuScore.value):
-            # print(score.getText())
-            scores.append(int(score.getText().strip()))
+            scores.append(score.getText().strip())
         return scores
 
     def getBestOf(self, container: element.Tag) -> int:

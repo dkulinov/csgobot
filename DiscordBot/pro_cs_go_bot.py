@@ -181,7 +181,8 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     if past_matches[0].team1Logo == "/img/static/team/placeholder.svg":
         past_matches[0].team1Logo = "https://hltv.org" + past_matches[0].team1Logo
-    embed.set_thumbnail(url=past_matches[0].team1Logo)
+    embed.set_thumbnail(url='https://img-cdn.hltv.org/teamlogo/9iMirAi7ArBLNU8p3kqUTZ.svg?ixlib=java-2.1.0&s=4dd8635be16122656093ae9884675d0c')
+    print(past_matches[0].team1Logo)
     for past_match in past_matches:
         date = datetime.fromtimestamp(int(past_match.epochTime) // 1000).strftime('%Y-%m-%d')
         embed.add_field(name=f'--- {date} ---',
@@ -194,11 +195,12 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
     embed = discord.Embed(title=f'{team.upper()}\'s upcoming matches:', url=urlBuilder.buildGetMatchesByTeamUrl(team)+"#tab-matchesBox",
                           color=discord.Color.blue())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    if len(future_matches) == 0:
+        embed.add_field(name="No upcoming matches scheduled.", value="Please try again another time.")
+        return embed
     if future_matches[0].team1Logo == "/img/static/team/placeholder.svg":
         future_matches[0].team1Logo = "https://hltv.org" + future_matches[0].team1Logo
     embed.set_thumbnail(url=future_matches[0].team1Logo)
-    if len(future_matches) == 0:
-        embed.add_field(name="No upcoming matches scheduled.", value="Please try again another time.")
     for future_match in future_matches:
         date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
         embed.add_field(name=f'---{date}---', value=f'vs {future_match.team2}', inline=False)

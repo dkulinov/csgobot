@@ -55,7 +55,10 @@ class Scraper:
         emptyFutureMatches = theSoup.find(id='matchesBox').find(class_='empty-state')
         if timeFrame == MatchTime.future and emptyFutureMatches:
             return []
-        theSoup = theSoup.find_all(class_="match-table")[timeFrame.value]
+        if not emptyFutureMatches:
+            theSoup = theSoup.find_all(class_="match-table")[timeFrame.value]
+        else:
+            theSoup = theSoup.find(class_="match-table")
         return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
     # TODO: check if cookie can be set for timezone. (hltvTimeZone: America/Phoenix)

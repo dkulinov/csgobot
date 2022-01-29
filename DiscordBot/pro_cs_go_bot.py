@@ -139,10 +139,13 @@ def news_embed(recent_news: [News], author_name, author_icon):
     embed = discord.Embed(title=f'HLTV\'s recent news:', url=urlBuilder.buildGetNewsUrl(),
                           color=discord.Color.teal())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
-    embed.set_thumbnail(url="https://i.ibb.co/Zm6hzzN/Breaking-news-World-news-with-map-backgorund-Breaking-news-TV-concept-Vector-stock.jpg")
+    embed.set_thumbnail(
+        url="https://i.ibb.co/Zm6hzzN/Breaking-news-World-news-with-map-backgorund-Breaking-news-TV-concept-Vector-stock.jpg")
     for the_news in recent_news:
-        embed.add_field(name="\u200b", value=f'[{the_news.title}]({the_news.link})', inline=False)
+        embed.add_field(name="---", value=f'[{the_news.title}]({the_news.link})', inline=False)
     return embed
 
+
+empty_char = '\u200b'
 
 bot.run(TOKEN)

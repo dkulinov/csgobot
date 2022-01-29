@@ -9,9 +9,11 @@ from dotenv import load_dotenv
 
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 from Commons.Types.Match.MatchByTeam import MatchByTeam
+from Commons.Types.Match.PastMatch import PastMatch
 from Commons.Types.News import News
 from Commons.Types.Team import HLTVTeams
 from Commons.Types.TopTeam import TopTeam
+from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTime import MatchTime
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.FutureMatchFactory import FutureMatchFactory
@@ -175,7 +177,8 @@ async def matches_for_error(ctx, error):
 
 
 def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, author_icon):
-    embed = discord.Embed(title=f'{team.upper()}\'s recent matches:', url=urlBuilder.buildGetMatchesByTeamUrl(team)+"#tab-matchesBox",
+    embed = discord.Embed(title=f'{team.upper()}\'s recent matches:',
+                          url=urlBuilder.buildGetMatchesByTeamUrl(team) + "#tab-matchesBox",
                           color=discord.Color.teal())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     if past_matches[0].team1Logo == "/img/static/team/placeholder.svg":
@@ -191,7 +194,8 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
 
 
 def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_name, author_icon):
-    embed = discord.Embed(title=f'{team.upper()}\'s upcoming matches:', url=urlBuilder.buildGetMatchesByTeamUrl(team)+"#tab-matchesBox",
+    embed = discord.Embed(title=f'{team.upper()}\'s upcoming matches:',
+                          url=urlBuilder.buildGetMatchesByTeamUrl(team) + "#tab-matchesBox",
                           color=discord.Color.blue())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     if len(future_matches) == 0:
@@ -203,6 +207,38 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
     for future_match in future_matches:
         date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
         embed.add_field(name=f'--- {date} ---', value=f'[vs {future_match.team2}]({future_match.link})', inline=False)
+    return embed
+
+
+@bot.command(name="recent_matches",
+             help=f'Shows recent matches. You can also provide number of matches (between 1-25) and the offset (non-negative number).')
+async def recent_matches(ctx, number=10, offset=0):
+    recent_matches: [PastMatch] = scraper.getAllMatches(MatchContainers.past, numberPast=number, offset=offset)
+    await ctx.send(embed=recent_matches_embed(recent_matches[:number], offset, ctx.author.display_name, ctx.author.avatar_url))
+
+
+@recent_matches.error
+async def recent_matches_error(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        message = "Please provide a whole number."
+    elif isinstance(error, CommandInvokeError) and isinstance(error.original, ValueError):
+        message = error.original
+    else:
+        message = ":( Something went wrong. Please try again."
+    await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
+
+
+def recent_matches_embed(recent_matches: [PastMatch], offset, author_name, author_icon):
+    embed = discord.Embed(title=f'Recent matches ({offset + 1}-{offset + len(recent_matches)}):',
+                          url=urlBuilder.buildGetPastMatches(offset),
+                          color=discord.Color.teal())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    for recent_match in recent_matches:
+        embed.add_field(
+            name=f'--- {recent_match.team1} vs {recent_match.team2} ---',
+            value=f'[{recent_match.team1} {recent_match.team1Score} : {recent_match.team2Score} {recent_match.team2}]({recent_match.link})'
+                  f'\nRun: !series_stats {recent_match.link} for more details',
+            inline=False)
     return embed
 
 

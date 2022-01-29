@@ -78,9 +78,9 @@ class Scraper:
             matches = self._getFutureMatchesByDay(theSoup, lookForDate)
         return matches
 
-    def getAllMatches(self, containerType: MatchContainers, offset: int = 0, numberPast: int = 20,
+    def getAllMatches(self, containerType: MatchContainers, offset: int = 0, numberPast: int = 25,
                       predefinedFilter: MatchType = MatchType.TopTier):
-        self._validateNumPastMatches(numberPast, containerType)
+        self._validatePastMatchParams(numberPast, offset, containerType)
         lookingForPast = containerType == MatchContainers.past
         correctUrl = self._getCorrectGetAllMatchesUrl(containerType, predefinedFilter, offset)
         theSoup = self.soupChef.makeSoup(correctUrl)
@@ -134,10 +134,14 @@ class Scraper:
         if lookForDate < weekBeforeToday:
             raise ValueError("Cannot look up matches more than a week before today.")
 
-    def _validateNumPastMatches(self, numberPast: int, containerType: MatchContainers):
-        if MatchContainers.past == containerType and (numberPast > 30 or numberPast < 0):
-            raise ValueError("Cannot get more than 30 past matches at a time. Please modify the offset if you want "
+    def _validatePastMatchParams(self, numberPast: int, offset:int, containerType: MatchContainers):
+        if MatchContainers.past == containerType and numberPast < 1:
+            raise ValueError("Number of matches has to be positive")
+        if MatchContainers.past == containerType and numberPast > 25:
+            raise ValueError("Cannot get more than 25 past matches at a time. Please modify the offset if you want "
                              "to go further into the past")
+        if MatchContainers.past == containerType and offset < 0:
+            raise ValueError("Offset can't be a negative number")
 
     def _getFutureMatchesByDay(self, theSoup: element.Tag, lookForDate) -> [FutureMatch]:
         correctMatchDay = self._getCorrectFutureMatchDay(theSoup, lookForDate)

@@ -1,12 +1,18 @@
 # bot.py
 import os
+from datetime import datetime
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import MissingRequiredArgument
 from dotenv import load_dotenv
 
+from Commons.Exceptions.InvalidTeamException import InvalidTeamException
+from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.News import News
+from Commons.Types.Team import HLTVTeams
 from Commons.Types.TopTeam import TopTeam
+from HLTVScraper.HLTVConsts.MatchTime import MatchTime
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.FutureMatchFactory import FutureMatchFactory
 from HLTVScraper.Helpers.Factories.MatchFactories.MatchByTeamFactory import MatchByTeamFactory
@@ -35,6 +41,7 @@ topTeamFactory = TopTeamFactory()
 scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, futureMatchFactory,
                   seriesFactory, matchByTeamFactory, newsFactory, topTeamFactory)
 
+empty_char = '\u200b'
 bot = commands.Bot(command_prefix='!')
 
 
@@ -129,7 +136,7 @@ async def news(ctx):
 
 
 @news.error
-async def top_teams_error(ctx, error):
+async def news_error(ctx, error):
     print(error)
     message = ":( Something went wrong. Please try again."
     await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
@@ -146,6 +153,56 @@ def news_embed(recent_news: [News], author_name, author_icon):
     return embed
 
 
-empty_char = '\u200b'
+@bot.command(name="matches_for", help=f'Supported teams: {", ".join(list(HLTVTeams().HLTV_teams.keys()))}')
+async def matches_for(ctx, *, team):
+    past_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.past)
+    future_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.future)
+    await ctx.send(embed=past_matches_by_team_embed(team, past_matches_by_team[:25], ctx.author.display_name,
+                                                    ctx.author.avatar_url))
+    await ctx.send(embed=future_matches_by_team_embed(team, future_matches_by_team[:25], ctx.author.display_name,
+                                                      ctx.author.avatar_url))
+
+
+@matches_for.error
+async def matches_for_error(ctx, error):
+    print(type(error))
+    if isinstance(error, InvalidTeamException):
+        message = f'Supported teams: {HLTVTeams().HLTV_teams.keys()}'
+    elif isinstance(error, MissingRequiredArgument):
+        message = f'Please provide a team'
+    else:
+        message = ":( Something went wrong. Please try again."
+    await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
+
+
+def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, author_icon):
+    embed = discord.Embed(title=f'{team.upper()}\'s recent matches:', url=urlBuilder.buildGetMatchesByTeamUrl(team)+"#tab-matchesBox",
+                          color=discord.Color.teal())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    if past_matches[0].team1Logo == "/img/static/team/placeholder.svg":
+        past_matches[0].team1Logo = "https://hltv.org" + past_matches[0].team1Logo
+    embed.set_thumbnail(url=past_matches[0].team1Logo)
+    for past_match in past_matches:
+        date = datetime.fromtimestamp(int(past_match.epochTime) // 1000).strftime('%Y-%m-%d')
+        embed.add_field(name=f'--- {date} ---',
+                        value=f'{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}. \nFor more details type: !series_stats {past_match.link}',
+                        inline=False)
+    return embed
+
+
+def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_name, author_icon):
+    embed = discord.Embed(title=f'{team.upper()}\'s upcoming matches:', url=urlBuilder.buildGetMatchesByTeamUrl(team)+"#tab-matchesBox",
+                          color=discord.Color.blue())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    if future_matches[0].team1Logo == "/img/static/team/placeholder.svg":
+        future_matches[0].team1Logo = "https://hltv.org" + future_matches[0].team1Logo
+    embed.set_thumbnail(url=future_matches[0].team1Logo)
+    if len(future_matches) == 0:
+        embed.add_field(name="No upcoming matches scheduled.", value="Please try again another time.")
+    for future_match in future_matches:
+        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
+        embed.add_field(name=f'---{date}---', value=f'vs {future_match.team2}', inline=False)
+    return embed
+
 
 bot.run(TOKEN)

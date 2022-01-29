@@ -3,6 +3,7 @@ from datetime import timedelta
 from bs4 import element
 from Commons.Types.Match import PastMatch, FutureMatch
 from Commons.Types.Match.Match import Match
+from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.MatchType import MatchType
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTime import MatchTime
@@ -48,7 +49,7 @@ class Scraper:
             matches.append(correctFactory.createMatch(matchContainer))
         return matches
 
-    def getMatchesByTeam(self, team: str, timeFrame: MatchTime = MatchTime.future) -> [Match]:
+    def getMatchesByTeam(self, team: str, timeFrame: MatchTime = MatchTime.future) -> [MatchByTeam]:
         url = self.urlBuilder.buildGetMatchesByTeamUrl(team)
         theSoup = self.soupChef.makeSoup(url)
         emptyFutureMatches = theSoup.find(id='matchesBox').find(class_='empty-state')

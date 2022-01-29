@@ -51,7 +51,8 @@ class HLTVTeams:
             "singularity":       6978,
             "tyloo":             4863,
             "renegades":         6211,
-            "eternal-fire":      11251
+            "eternal-fire":      11251,
+            "ecstatic":          11419,
         }
 
     def getTeamId(self, team: str):

@@ -4,7 +4,7 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import MissingRequiredArgument
+from discord.ext.commands import MissingRequiredArgument, CommandInvokeError
 from dotenv import load_dotenv
 
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
@@ -155,7 +155,7 @@ def news_embed(recent_news: [News], author_name, author_icon):
 
 @bot.command(name="matches_for", help=f'Supported teams: {", ".join(list(HLTVTeams().HLTV_teams.keys()))}')
 async def matches_for(ctx, *, team):
-    past_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.past)
+    past_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.past)[::-1]
     future_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.future)
     await ctx.send(embed=past_matches_by_team_embed(team, past_matches_by_team[:25], ctx.author.display_name,
                                                     ctx.author.avatar_url))
@@ -165,9 +165,8 @@ async def matches_for(ctx, *, team):
 
 @matches_for.error
 async def matches_for_error(ctx, error):
-    print(type(error))
-    if isinstance(error, InvalidTeamException):
-        message = f'Supported teams: {HLTVTeams().HLTV_teams.keys()}'
+    if isinstance(error, CommandInvokeError) and isinstance(error.original, InvalidTeamException):
+        message = f'Please enter a supported team: {", ".join(list(HLTVTeams().HLTV_teams.keys()))}'
     elif isinstance(error, MissingRequiredArgument):
         message = f'Please provide a team'
     else:
@@ -181,12 +180,12 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     if past_matches[0].team1Logo == "/img/static/team/placeholder.svg":
         past_matches[0].team1Logo = "https://hltv.org" + past_matches[0].team1Logo
-    embed.set_thumbnail(url='https://img-cdn.hltv.org/teamlogo/9iMirAi7ArBLNU8p3kqUTZ.svg?ixlib=java-2.1.0&s=4dd8635be16122656093ae9884675d0c')
-    print(past_matches[0].team1Logo)
+    embed.set_thumbnail(url=past_matches[0].team1Logo)
     for past_match in past_matches:
         date = datetime.fromtimestamp(int(past_match.epochTime) // 1000).strftime('%Y-%m-%d')
         embed.add_field(name=f'--- {date} ---',
-                        value=f'{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}. \nFor more details type: !series_stats {past_match.link}',
+                        value=f'[{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}]({past_match.link}). '
+                              f'\nRun: !series_stats {past_match.link} for more details',
                         inline=False)
     return embed
 
@@ -203,7 +202,7 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
     embed.set_thumbnail(url=future_matches[0].team1Logo)
     for future_match in future_matches:
         date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
-        embed.add_field(name=f'---{date}---', value=f'vs {future_match.team2}', inline=False)
+        embed.add_field(name=f'--- {date} ---', value=f'[vs {future_match.team2}]({future_match.link})', inline=False)
     return embed
 
 

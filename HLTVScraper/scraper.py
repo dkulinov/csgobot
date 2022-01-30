@@ -79,7 +79,7 @@ class Scraper:
         return matches
 
     def getAllMatches(self, containerType: MatchContainers, offset: int = 0, numberPast: int = 25,
-                      predefinedFilter: MatchType = MatchType.TopTier):
+                      predefinedFilter: MatchType = MatchType.Default):
         self._validatePastMatchParams(numberPast, offset, containerType)
         lookingForPast = containerType == MatchContainers.past
         correctUrl = self._getCorrectGetAllMatchesUrl(containerType, predefinedFilter, offset)

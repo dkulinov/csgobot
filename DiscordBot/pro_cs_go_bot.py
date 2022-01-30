@@ -1,4 +1,5 @@
 # bot.py
+import math
 import os
 from datetime import datetime
 
@@ -8,8 +9,10 @@ from discord.ext.commands import MissingRequiredArgument, CommandInvokeError
 from dotenv import load_dotenv
 
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
+from Commons.Types.Match.CurrentMatch import CurrentMatch
 from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.Match.PastMatch import PastMatch
+from Commons.Types.MatchType import MatchType
 from Commons.Types.News import News
 from Commons.Types.Team import HLTVTeams
 from Commons.Types.TopTeam import TopTeam
@@ -210,11 +213,12 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
     return embed
 
 
-@bot.command(name="recent_matches",
+@bot.command(name="recent",
              help=f'Shows recent matches. You can also provide number of matches (between 1-25) and the offset (non-negative number).')
 async def recent_matches(ctx, number=10, offset=0):
     recent_matches: [PastMatch] = scraper.getAllMatches(MatchContainers.past, numberPast=number, offset=offset)
-    await ctx.send(embed=recent_matches_embed(recent_matches[:number], offset, ctx.author.display_name, ctx.author.avatar_url))
+    await ctx.send(
+        embed=recent_matches_embed(recent_matches[:number], offset, ctx.author.display_name, ctx.author.avatar_url))
 
 
 @recent_matches.error
@@ -238,6 +242,59 @@ def recent_matches_embed(recent_matches: [PastMatch], offset, author_name, autho
             name=f'--- {recent_match.team1} vs {recent_match.team2} ---',
             value=f'[{recent_match.team1} {recent_match.team1Score} : {recent_match.team2Score} {recent_match.team2}]({recent_match.link})'
                   f'\nRun: !series_stats {recent_match.link} for more details',
+            inline=False)
+    return embed
+
+
+@bot.command(name="live",
+             help='Shows live matches. You can also provide a filter (top_tier or lan). If not provided, will return all matches.')
+async def live_matches(ctx, match_filter="none"):
+    if match_filter == "top_tier":
+        match_type = MatchType.TopTier
+    elif match_filter == "lan":
+        match_type = MatchType.LanOnly
+    elif match_filter == "none":
+        match_type = MatchType.Default
+    else:
+        raise TypeError("Filter has to be either top_tier or lan")
+    live_matches: [CurrentMatch] = scraper.getAllMatches(MatchContainers.present, predefinedFilter=match_type)
+    max_fields_per_embed = 25
+    num_embeds_required = math.ceil(len(live_matches) / max_fields_per_embed)
+    if num_embeds_required < 1:
+        await ctx.send(
+            embed=error_embed("There are currently no live matches.", ctx.author.display_name, ctx.author.avatar_url))
+    for batch in range(num_embeds_required):
+        start = batch * max_fields_per_embed
+        end = start + max_fields_per_embed
+        batch_of_matches = live_matches[start:end]
+        await ctx.send(
+            embed=live_matches_embed(batch_of_matches, match_type, ctx.author.display_name, ctx.author.avatar_url))
+
+
+@live_matches.error
+async def live_matches_error(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        message = "Filter has to be either top_tier or lan."
+    elif isinstance(error, CommandInvokeError) and isinstance(error.original, TypeError):
+        message = "Filter has to be either top_tier or lan."
+    elif isinstance(error, CommandInvokeError) and isinstance(error.original, ValueError):
+        message = error.original
+    else:
+        message = ":( Something went wrong. Please try again."
+    await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
+
+
+def live_matches_embed(live_matches: [CurrentMatch], predefinedFilter, author_name, author_icon):
+    embed = discord.Embed(title='Live matches:',
+                          url=urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter),
+                          color=discord.Color.green())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    for live_match in live_matches:
+        embed.add_field(
+            name=f'--- {live_match.team1} vs {live_match.team2} ---',
+            value=f'BO{live_match.bestOf}. Maps won: {live_match.team1MapsWon} : {live_match.team2MapsWon}'
+                  f'\nCurrent map score: {live_match.team1CuMapScore} : {live_match.team2CuMapScore}'
+                  f'\n[Click here]({live_match.link}) for more details.',
             inline=False)
     return embed
 

@@ -31,6 +31,8 @@ class CurrentMatchFactory(AbstractMatchFactory):
         scores = []
         for result in resultContainers:
             scores.append(result.span.getText().strip())
+        if len(scores) == 0:
+            return [0, 0]
         return scores
 
     def getCurrentScore(self, container: element.Tag) -> [int]:

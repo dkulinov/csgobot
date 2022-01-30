@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from Commons.Exceptions.InvalidTeamException import InvalidTeamException
 from Commons.Types.Match.CurrentMatch import CurrentMatch
+from Commons.Types.Match.FutureMatch import FutureMatch
 from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.Match.PastMatch import PastMatch
 from Commons.Types.MatchType import MatchType
@@ -262,7 +263,7 @@ async def live_matches(ctx, match_filter="none"):
     num_embeds_required = math.ceil(len(live_matches) / max_fields_per_embed)
     if num_embeds_required < 1:
         await ctx.send(
-            embed=error_embed("There are currently no live matches.", ctx.author.display_name, ctx.author.avatar_url))
+            embed=error_embed(f'There are currently no live {match_type.value} matches.', ctx.author.display_name, ctx.author.avatar_url))
     for batch in range(num_embeds_required):
         start = batch * max_fields_per_embed
         end = start + max_fields_per_embed
@@ -298,5 +299,64 @@ def live_matches_embed(live_matches: [CurrentMatch], predefinedFilter, author_na
             inline=False)
     return embed
 
+
+@bot.command(name="upcoming",
+             help='Shows upcoming matches. You can also provide a filter (top_tier or lan). If not provided, will return all matches. You can also provide a number of matches to get.')
+async def upcoming_matches(ctx, number=100, match_filter="none"):
+    if match_filter == "top_tier":
+        match_type = MatchType.TopTier
+    elif match_filter == "lan":
+        match_type = MatchType.LanOnly
+    elif match_filter == "none":
+        match_type = MatchType.Default
+    else:
+        raise TypeError("Filter has to be either top_tier or lan")
+    if number < 1:
+        raise ValueError("Number of matches has to be positive")
+    future_matches: [FutureMatch] = scraper.getAllMatches(MatchContainers.future, predefinedFilter=match_type)[:number]
+    max_fields_per_embed = 25
+    num_embeds_required = math.ceil(len(future_matches) / max_fields_per_embed)
+    if num_embeds_required < 1:
+        await ctx.send(
+            embed=error_embed(f'There are currently no upcoming {match_type.value} matches.', ctx.author.display_name, ctx.author.avatar_url))
+    for batch in range(num_embeds_required):
+        start = batch * max_fields_per_embed
+        end = start + max_fields_per_embed
+        batch_of_matches = future_matches[start:end]
+        await ctx.send(
+            embed=upcoming_matches_embed(batch_of_matches, match_type, ctx.author.display_name, ctx.author.avatar_url))
+
+
+@upcoming_matches.error
+async def upcoming_matches_error(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        message = error
+    elif isinstance(error, CommandInvokeError) and isinstance(error.original, TypeError):
+        message = "Filter has to be either top_tier or lan."
+    elif isinstance(error, CommandInvokeError) and isinstance(error.original, ValueError):
+        message = error.original
+    else:
+        message = ":( Something went wrong. Please try again."
+    await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
+
+
+def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, author_name, author_icon):
+    embed = discord.Embed(title='Upcoming matches:',
+                          url=urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter),
+                          color=discord.Color.green())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    for future_match in future_matches:
+        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
+        if future_match.emptyMatchDescription is not None:
+            embed.add_field(
+                name=f'--- {date} ---',
+                value=f'BO{future_match.bestOf}. [{future_match.emptyMatchDescription}]({future_match.link})',
+                inline=False)
+        else:
+            embed.add_field(
+                name=f'--- {date} ---',
+                value=f'BO{future_match.bestOf}. [{future_match.team1} vs {future_match.team2}]({future_match.link})',
+                inline=False)
+    return embed
 
 bot.run(TOKEN)

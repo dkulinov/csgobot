@@ -5,6 +5,7 @@ from datetime import datetime
 
 import aiosqlite
 import discord
+from aiosqlite import Cursor
 from discord import Member
 from discord.ext import commands
 from discord.ext.commands import MissingRequiredArgument, CommandInvokeError
@@ -21,6 +22,8 @@ from Commons.Types.SeriesStats.MatchStats import MatchStats
 from Commons.Types.SeriesStats.SeriesStats import SeriesStats
 from Commons.Types.Team import HLTVTeams
 from Commons.Types.TopTeam import TopTeam
+from DiscordBot.DB.UserTimezone import UserTimezone
+from DiscordBot.DB.db import UserTimezoneDB
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTime import MatchTime
 from HLTVScraper.Helpers.Factories.MatchFactories.CurrentMatchFactory import CurrentMatchFactory
@@ -54,30 +57,16 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 empty_char = '\u200b'
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
-async def getConn():
-    db = await aiosqlite.connect("csbot.db")
-    await db.execute("CREATE TABLE IF NOT EXISTS user_timezones (id TEXT PRIMARY KEY, timezone TEXT)")
-    await db.commit()
-    return db
+db = UserTimezoneDB()
 
-db = getConn()
 
 # https://stackoverflow.com/questions/57182398/is-it-possible-to-attach-multiple-images-in-a-embed/57191891#:~:text=Yes%20and%20no.,shown%20separately%20from%20the%20embed.
 # await ctx.author.edit(nick =ctx.author.name + " [timezone]")
 
 @bot.event
 async def on_ready():
-    for guild in bot.guilds:
-        if guild.name == GUILD:
-            break
-
-    print(
-        f'{bot.user} is connected to the following guild:\n'
-        f'{guild.name}(id: {guild.id})'
-    )
-
-    members = '\n - '.join([member.name for member in guild.members])
-    print(f'Guild Members:\n - {members}')
+    await db.set_up_db()
+    print("I'm ready!")
 
 
 # TODO: give list of commands
@@ -374,14 +363,40 @@ def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, auth
 
 @bot.command(name="set_timezone",
              help='Sets your timezone.')
-async def series_stats(ctx, *, city):
-    print(city)
-    try:
-        await db.execute(f"INSERT INTO user_timezones VALUE({ctx.author.id}, {city})")
-        await db.commit()
-        user_timezone = await db.execute(f"SELECT FROM user_timezones WHERE id='{ctx.author.id}'")
-    except BaseException as e:
-        print(e)
-    await ctx.send(user_timezone)
+async def set_timezone(ctx, *, city):
+    # go through google's api to get timezone id (i.e America/Phoenix)
+    user_timezone = await db.upsert(ctx.author.id, city)
+    await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
+
+
+@set_timezone.error
+async def set_timezone_error(ctx):
+    await ctx.send(
+        embed=error_embed("Could not connect to DB. Please try again.", ctx.author.display_name, ctx.author.avatar_url))
+
+
+@bot.command(name="timezone",
+             help='Shows your timezone.')
+async def timezone(ctx):
+    user_timezone = await db.get_by_id(str(ctx.author.id))
+    await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
+
+
+@timezone.error
+async def timezone_error(ctx, error):
+    print(error)
+    await ctx.send(
+        embed=error_embed("Could not connect to DB. Please try again.", ctx.author.display_name, ctx.author.avatar_url))
+
+
+def timezone_embed(user_timezone, author_name, author_icon):
+    if user_timezone is None:
+        timezone = "not set. To set it, run !set_timezone [your_city]"
+    else:
+        timezone = user_timezone.timezone
+    embed = discord.Embed(title=f"Your timezone is {timezone}", color=discord.Color.green())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    return embed
+
 
 bot.run(TOKEN)

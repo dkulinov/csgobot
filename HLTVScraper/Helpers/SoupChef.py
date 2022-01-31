@@ -18,6 +18,8 @@ class SoupChef:
         # res = urlopen(req, timeout=20)
         # TODO: check if this can be used https://stackoverflow.com/questions/59665773/why-render-requests-html-doesnt-scrape-dynamic-content
         driver = webdriver.Chrome(ChromeDriverManager().install())
+        tz_params = {'timezoneId': 'America/New_York'}
+        driver.execute_cdp_cmd('Emulation.setTimezoneOverride', tz_params)
         driver.get(url)
         if url == "https://www.hltv.org/matches":
             sleep(1)

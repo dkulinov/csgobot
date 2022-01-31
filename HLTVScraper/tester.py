@@ -58,11 +58,10 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
 # for pastMatch in pastMatches:
 #     print("{} {} {} VS {} {} {}. MORE: {}".format(pastMatch.team1, pastMatch.team1Logo, pastMatch.team1Score, pastMatch.team2Score, pastMatch.team2, pastMatch.team2Logo, pastMatch.link))
 
-# TODO: test this
 # GET ALL MATCHES (live)
-liveMatches: [CurrentMatch] = scraper.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
-for liveMatch in liveMatches:
-    print("BO{}: {} {} {} {} VS {} {} {} {}. MORE: {}".format(liveMatch.bestOf, liveMatch.team1, liveMatch.team1Logo, liveMatch.team1CuMapScore, liveMatch.team1MapsWon, liveMatch.team2, liveMatch.team2Logo, liveMatch.team2CuMapScore, liveMatch.team2MapsWon, liveMatch.link))
+# liveMatches: [CurrentMatch] = scraper.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
+# for liveMatch in liveMatches:
+#     print("BO{}: {} {} {} {} VS {} {} {} {}. MORE: {}".format(liveMatch.bestOf, liveMatch.team1, liveMatch.team1Logo, liveMatch.team1CuMapScore, liveMatch.team1MapsWon, liveMatch.team2, liveMatch.team2Logo, liveMatch.team2CuMapScore, liveMatch.team2MapsWon, liveMatch.link))
 
 # GET ALL MATCHES (future)
 # futureMatches: [FutureMatch] = scraper.getAllMatches(MatchContainers.future, predefinedFilter=MatchType.TopTier)
@@ -84,16 +83,16 @@ for liveMatch in liveMatches:
 #     print("{}. {} {} {} vs {} {} {}. MORE: {}".format(pastMatchByTeam.epochTime, pastMatchByTeam.team1, pastMatchByTeam.team1Logo, pastMatchByTeam.team1Score, pastMatchByTeam.team2Score, pastMatchByTeam.team2Logo, pastMatchByTeam.team2, pastMatchByTeam.link))
 
 # GET SERIES STATS
-# seriesStats: SeriesStats = scraper.getSeriesStats("https://www.hltv.org/matches/2353605/gambit-vs-natus-vincere-blast-premier-world-final-2021")
-# print("{} {} vs {} {}".format(seriesStats.team1Name, seriesStats.team1MapsWon, seriesStats.team2Name, seriesStats.team2MapsWon))
-# for map in seriesStats.matches:
-#     print(map.mapName)
-#     print(map.team1Score, map.team2Score)
-#     for team1Stat in map.team1Stats:
-#         print(team1Stat.player, team1Stat.kill_death, team1Stat.plus_minus, team1Stat.avg_damage_per_round, team1Stat.kill_assist_survive_traded, team1Stat.rating)
-#     for team2Stat in map.team2Stats:
-#         print(team2Stat.player, team2Stat.kill_death, team2Stat.plus_minus, team2Stat.avg_damage_per_round,
-#               team2Stat.kill_assist_survive_traded, team2Stat.rating)
+seriesStats: SeriesStats = scraper.getSeriesStats("https://www.hltv.org/matches/2353979/evil-geniuses-vs-liquid-blast-premier-spring-groups-2022")
+print("{} {} vs {} {}".format(seriesStats.team1Name, seriesStats.team1MapsWon, seriesStats.team2Name, seriesStats.team2MapsWon))
+for map in seriesStats.matches:
+    print(map.mapName)
+    print(map.team1Score, map.team2Score)
+    for team1Stat in map.team1Stats:
+        print(team1Stat.player, team1Stat.kill_death, team1Stat.plus_minus, team1Stat.avg_damage_per_round, team1Stat.kill_assist_survive_traded, team1Stat.rating)
+    for team2Stat in map.team2Stats:
+        print(team2Stat.player, team2Stat.kill_death, team2Stat.plus_minus, team2Stat.avg_damage_per_round,
+              team2Stat.kill_assist_survive_traded, team2Stat.rating)
 
 # GET MATCHES BY DAY (past)
 # matchesByDay: [PastMatch] = scraper.getMatchesByDay("01/25/2022")

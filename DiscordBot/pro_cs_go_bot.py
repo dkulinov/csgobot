@@ -3,7 +3,9 @@ import math
 import os
 from datetime import datetime
 
+import aiosqlite
 import discord
+from discord import Member
 from discord.ext import commands
 from discord.ext.commands import MissingRequiredArgument, CommandInvokeError
 from dotenv import load_dotenv
@@ -15,6 +17,8 @@ from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.Match.PastMatch import PastMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.News import News
+from Commons.Types.SeriesStats.MatchStats import MatchStats
+from Commons.Types.SeriesStats.SeriesStats import SeriesStats
 from Commons.Types.Team import HLTVTeams
 from Commons.Types.TopTeam import TopTeam
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
@@ -48,11 +52,18 @@ scraper = Scraper(urlBuilder, soupChef, pastMatchFactory, currentMatchFactory, f
                   seriesFactory, matchByTeamFactory, newsFactory, topTeamFactory)
 
 empty_char = '\u200b'
-bot = commands.Bot(command_prefix='!')
+intents = discord.Intents().all()
+bot = commands.Bot(command_prefix='!', intents=intents)
+async def getConn():
+    db = await aiosqlite.connect("csbot.db")
+    await db.execute("CREATE TABLE IF NOT EXISTS user_timezones (id TEXT PRIMARY KEY, timezone TEXT)")
+    await db.commit()
+    return db
 
+db = getConn()
 
 # https://stackoverflow.com/questions/57182398/is-it-possible-to-attach-multiple-images-in-a-embed/57191891#:~:text=Yes%20and%20no.,shown%20separately%20from%20the%20embed.
-
+# await ctx.author.edit(nick =ctx.author.name + " [timezone]")
 
 @bot.event
 async def on_ready():
@@ -143,7 +154,6 @@ async def news(ctx):
 
 @news.error
 async def news_error(ctx, error):
-    print(error)
     message = ":( Something went wrong. Please try again."
     await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
@@ -192,7 +202,7 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
         date = datetime.fromtimestamp(int(past_match.epochTime) // 1000).strftime('%Y-%m-%d')
         embed.add_field(name=f'--- {date} ---',
                         value=f'[{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}]({past_match.link}). '
-                              f'\nRun: !series_stats {past_match.link} for more details',
+                              f'\nRun: !stats {past_match.link} for more details',
                         inline=False)
     return embed
 
@@ -242,7 +252,7 @@ def recent_matches_embed(recent_matches: [PastMatch], offset, author_name, autho
         embed.add_field(
             name=f'--- {recent_match.team1} vs {recent_match.team2} ---',
             value=f'[{recent_match.team1} {recent_match.team1Score} : {recent_match.team2Score} {recent_match.team2}]({recent_match.link})'
-                  f'\nRun: !series_stats {recent_match.link} for more details',
+                  f'\nRun: !stats {recent_match.link} for more details',
             inline=False)
     return embed
 
@@ -263,7 +273,8 @@ async def live_matches(ctx, match_filter="none"):
     num_embeds_required = math.ceil(len(live_matches) / max_fields_per_embed)
     if num_embeds_required < 1:
         await ctx.send(
-            embed=error_embed(f'There are currently no live {match_type.value} matches.', ctx.author.display_name, ctx.author.avatar_url))
+            embed=error_embed(f'There are currently no live {match_type.value} matches.', ctx.author.display_name,
+                              ctx.author.avatar_url))
     for batch in range(num_embeds_required):
         start = batch * max_fields_per_embed
         end = start + max_fields_per_embed
@@ -318,7 +329,8 @@ async def upcoming_matches(ctx, number=100, match_filter="none"):
     num_embeds_required = math.ceil(len(future_matches) / max_fields_per_embed)
     if num_embeds_required < 1:
         await ctx.send(
-            embed=error_embed(f'There are currently no upcoming {match_type.value} matches.', ctx.author.display_name, ctx.author.avatar_url))
+            embed=error_embed(f'There are currently no upcoming {match_type.value} matches.', ctx.author.display_name,
+                              ctx.author.avatar_url))
     for batch in range(num_embeds_required):
         start = batch * max_fields_per_embed
         end = start + max_fields_per_embed
@@ -358,5 +370,18 @@ def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, auth
                 value=f'BO{future_match.bestOf}. [{future_match.team1} vs {future_match.team2}]({future_match.link})',
                 inline=False)
     return embed
+
+
+@bot.command(name="set_timezone",
+             help='Sets your timezone.')
+async def series_stats(ctx, *, city):
+    print(city)
+    try:
+        await db.execute(f"INSERT INTO user_timezones VALUE({ctx.author.id}, {city})")
+        await db.commit()
+        user_timezone = await db.execute(f"SELECT FROM user_timezones WHERE id='{ctx.author.id}'")
+    except BaseException as e:
+        print(e)
+    await ctx.send(user_timezone)
 
 bot.run(TOKEN)

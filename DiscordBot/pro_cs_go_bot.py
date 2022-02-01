@@ -37,6 +37,7 @@ from HLTVScraper.Helpers.SoupChef import SoupChef
 from HLTVScraper.Helpers.UrlBuilder import URLBuilder
 from HLTVScraper.scraper import Scraper
 from geopy.geocoders import GoogleV3
+from geopy.adapters import AioHTTPAdapter
 import pytz
 
 load_dotenv()
@@ -371,7 +372,7 @@ def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, auth
 @bot.command(name="set_timezone",
              help='Sets your timezone.')
 async def set_timezone(ctx, *, city):
-    tz = get_timezone_from_city(city)
+    tz = await get_timezone_from_city(city)
     user_timezone = await db.upsert(ctx.author.id, tz)
     await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
 
@@ -407,13 +408,39 @@ def timezone_embed(user_timezone, author_name, author_icon):
     return embed
 
 
-def get_timezone_from_city(city):
-    geolocator = GoogleV3(api_key=GOOGLE_API_KEY)
-    location = geolocator.geocode(city)
-    if location is None:
-        raise LookupError("Invalid location")
-    timezone = geolocator.reverse_timezone((location.latitude, location.longitude))
-    return timezone
+async def get_timezone_from_city(city):
+    async with GoogleV3(
+            api_key=GOOGLE_API_KEY,
+            adapter_factory=AioHTTPAdapter,
+    ) as geolocator:
+        location = await geolocator.geocode(city)
+        if location is None:
+            raise LookupError("Invalid location")
+        tz = await geolocator.reverse_timezone((location.latitude, location.longitude))
+        return tz
+
+@bot.command(name="by_day",
+             help='Shows matches for a day. Date should be in mm/dd/yyyy format')
+async def by_day(ctx):
+    user_timezone = await db.get_by_id(str(ctx.author.id))
+    await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
+
+
+@by_day.error
+async def by_day_error(ctx, error):
+    print(error)
+    await ctx.send(
+        embed=error_embed("Could not connect to DB. Please try again.", ctx.author.display_name, ctx.author.avatar_url))
+
+
+def timezone_embed(user_timezone, author_name, author_icon):
+    if user_timezone is None:
+        timezone = "not set. To set it, run !set_timezone [your_city]"
+    else:
+        timezone = user_timezone.timezone
+    embed = discord.Embed(title=f"Your timezone is {timezone}", color=discord.Color.green())
+    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
+    return embed
 
 
 

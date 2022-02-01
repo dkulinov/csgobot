@@ -36,10 +36,12 @@ from HLTVScraper.Helpers.Factories.TopTeamFactory import TopTeamFactory
 from HLTVScraper.Helpers.SoupChef import SoupChef
 from HLTVScraper.Helpers.UrlBuilder import URLBuilder
 from HLTVScraper.scraper import Scraper
+from geopy.geocoders import GoogleV3
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 urlBuilder = URLBuilder()
 soupChef = SoupChef(urlBuilder)
@@ -365,12 +367,14 @@ def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, auth
              help='Sets your timezone.')
 async def set_timezone(ctx, *, city):
     # go through google's api to get timezone id (i.e America/Phoenix)
-    user_timezone = await db.upsert(ctx.author.id, city)
+    tz = get_timezone_from_city(city)
+    user_timezone = await db.upsert(ctx.author.id, tz)
     await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
 
 
 @set_timezone.error
-async def set_timezone_error(ctx):
+async def set_timezone_error(ctx, error):
+    print(error)
     await ctx.send(
         embed=error_embed("Could not connect to DB. Please try again.", ctx.author.display_name, ctx.author.avatar_url))
 
@@ -398,5 +402,12 @@ def timezone_embed(user_timezone, author_name, author_icon):
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     return embed
 
+def get_timezone_from_city(city):
+    geolocator = GoogleV3(api_key=GOOGLE_API_KEY)
+    location = geolocator.geocode(city)
+    if location is None:
+        raise LookupError("Invalid location")
+    timezone = geolocator.reverse_timezone((location.latitude, location.longitude))
+    return timezone
 
 bot.run(TOKEN)

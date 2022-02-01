@@ -37,6 +37,7 @@ from HLTVScraper.Helpers.SoupChef import SoupChef
 from HLTVScraper.Helpers.UrlBuilder import URLBuilder
 from HLTVScraper.scraper import Scraper
 from geopy.geocoders import GoogleV3
+import pytz
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -83,12 +84,6 @@ async def on_member_join(member):
 @bot.event
 async def on_command_error(ctx, error):
     pass
-
-
-@bot.command(help="Repeats after you")
-async def echo(ctx, *arg):
-    *response, = arg
-    await ctx.send(" ".join(response))
 
 
 @bot.command(name="top_teams",
@@ -162,12 +157,17 @@ def news_embed(recent_news: [News], author_name, author_icon):
 
 @bot.command(name="matches_for", help=f'Supported teams: {", ".join(list(HLTVTeams().HLTV_teams.keys()))}')
 async def matches_for(ctx, *, team):
+    user_timezone = await db.get_by_id(ctx.author.id)
+    if user_timezone is not None:
+        timezone = user_timezone.timezone
+    else:
+        timezone = "America/Phoenix"
     past_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.past)[::-1]
     future_matches_by_team = scraper.getMatchesByTeam(team, MatchTime.future)
     await ctx.send(embed=past_matches_by_team_embed(team, past_matches_by_team[:25], ctx.author.display_name,
-                                                    ctx.author.avatar_url))
+                                                    ctx.author.avatar_url, timezone))
     await ctx.send(embed=future_matches_by_team_embed(team, future_matches_by_team[:25], ctx.author.display_name,
-                                                      ctx.author.avatar_url))
+                                                      ctx.author.avatar_url, timezone))
 
 
 @matches_for.error
@@ -181,7 +181,7 @@ async def matches_for_error(ctx, error):
     await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
 
-def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, author_icon):
+def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, author_icon, author_timezone):
     embed = discord.Embed(title=f'{team.upper()}\'s recent matches:',
                           url=urlBuilder.buildGetMatchesByTeamUrl(team) + "#tab-matchesBox",
                           color=discord.Color.teal())
@@ -190,7 +190,7 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
         past_matches[0].team1Logo = "https://hltv.org" + past_matches[0].team1Logo
     embed.set_thumbnail(url=past_matches[0].team1Logo)
     for past_match in past_matches:
-        date = datetime.fromtimestamp(int(past_match.epochTime) // 1000).strftime('%Y-%m-%d')
+        date = datetime.fromtimestamp(int(past_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime('%Y-%m-%d')
         embed.add_field(name=f'--- {date} ---',
                         value=f'[{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}]({past_match.link}). '
                               f'\nRun: !stats {past_match.link} for more details',
@@ -198,7 +198,7 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
     return embed
 
 
-def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_name, author_icon):
+def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_name, author_icon, author_timezone):
     embed = discord.Embed(title=f'{team.upper()}\'s upcoming matches:',
                           url=urlBuilder.buildGetMatchesByTeamUrl(team) + "#tab-matchesBox",
                           color=discord.Color.blue())
@@ -210,7 +210,7 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
         future_matches[0].team1Logo = "https://hltv.org" + future_matches[0].team1Logo
     embed.set_thumbnail(url=future_matches[0].team1Logo)
     for future_match in future_matches:
-        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
+        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime('%Y-%m-%d %I:%M %p')
         embed.add_field(name=f'--- {date} ---', value=f'[vs {future_match.team2}]({future_match.link})', inline=False)
     return embed
 
@@ -315,6 +315,11 @@ async def upcoming_matches(ctx, number=100, match_filter="none"):
         raise TypeError("Filter has to be either top_tier or lan")
     if number < 1:
         raise ValueError("Number of matches has to be positive")
+    user_timezone = await db.get_by_id(ctx.author.id)
+    if user_timezone is not None:
+        timezone = user_timezone.timezone
+    else:
+        timezone = "America/Chicago"
     future_matches: [FutureMatch] = scraper.getAllMatches(MatchContainers.future, predefinedFilter=match_type)[:number]
     max_fields_per_embed = 25
     num_embeds_required = math.ceil(len(future_matches) / max_fields_per_embed)
@@ -327,7 +332,7 @@ async def upcoming_matches(ctx, number=100, match_filter="none"):
         end = start + max_fields_per_embed
         batch_of_matches = future_matches[start:end]
         await ctx.send(
-            embed=upcoming_matches_embed(batch_of_matches, match_type, ctx.author.display_name, ctx.author.avatar_url))
+            embed=upcoming_matches_embed(batch_of_matches, match_type, ctx.author.display_name, ctx.author.avatar_url, timezone))
 
 
 @upcoming_matches.error
@@ -343,13 +348,13 @@ async def upcoming_matches_error(ctx, error):
     await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
 
-def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, author_name, author_icon):
+def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, author_name, author_icon, author_timezone):
     embed = discord.Embed(title='Upcoming matches:',
                           url=urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter),
                           color=discord.Color.green())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     for future_match in future_matches:
-        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000).strftime('%Y-%m-%d %I:%M %p')
+        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime('%Y-%m-%d %I:%M %p')
         if future_match.emptyMatchDescription is not None:
             embed.add_field(
                 name=f'--- {date} ---',
@@ -366,7 +371,6 @@ def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, auth
 @bot.command(name="set_timezone",
              help='Sets your timezone.')
 async def set_timezone(ctx, *, city):
-    # go through google's api to get timezone id (i.e America/Phoenix)
     tz = get_timezone_from_city(city)
     user_timezone = await db.upsert(ctx.author.id, tz)
     await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
@@ -402,6 +406,7 @@ def timezone_embed(user_timezone, author_name, author_icon):
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     return embed
 
+
 def get_timezone_from_city(city):
     geolocator = GoogleV3(api_key=GOOGLE_API_KEY)
     location = geolocator.geocode(city)
@@ -409,5 +414,7 @@ def get_timezone_from_city(city):
         raise LookupError("Invalid location")
     timezone = geolocator.reverse_timezone((location.latitude, location.longitude))
     return timezone
+
+
 
 bot.run(TOKEN)

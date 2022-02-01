@@ -61,17 +61,17 @@ class Scraper:
             theSoup = theSoup.find(class_="match-table")
         return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
-    # TODO: check if cookie can be set for timezone. (hltvTimeZone: America/Phoenix)
+    # TODO: check if cookie can be set for timezone. (hltvTimeZone: tz)
     # https://stackoverflow.com/questions/3467114/how-are-cookies-passed-in-the-http-protocol#:~:text=Cookies%20are%20passed%20as%20HTTP,(server%20%2D%3E%20client).
-    def getMatchesByDay(self, theDate: str) -> [Match]:
+    def getMatchesByDay(self, theDate: str, tz: str) -> [Match]:
         lookForDate = self._mapToDate(theDate, "%m/%d/%Y")
         todayDate = datetime.today().date()
         self._validateDateNotMoreThanWeekBefore(lookForDate)
         url = self._getMatchesByDayUrl(lookForDate, todayDate)
-        theSoup = self.soupChef.makeSoup(url)
+        theSoup = self.soupChef.makeSoup(url, tz)
         matches = []
         if lookForDate < todayDate:
-            matches = self._getPastMatchesByDay(lookForDate)
+            matches = self._getPastMatchesByDay(lookForDate, tz)
         elif lookForDate == todayDate:
             matches = self._getTodaysMatches(theSoup)
         elif lookForDate > todayDate:
@@ -169,14 +169,14 @@ class Scraper:
             raise ValueError("Could not find matches for ", lookForDate)
         return correctMatchDay
 
-    def _getPastMatchesByDay(self, lookForDate) -> [PastMatch]:
+    def _getPastMatchesByDay(self, lookForDate, tz: str) -> [PastMatch]:
         maxDays = 7
         daysSearched = 0
         soups = []
         offset = 0
         while daysSearched < maxDays:
             url = self.urlBuilder.buildGetPastMatches(offset)
-            soup = self.soupChef.makeSoup(url).find(class_="allres")
+            soup = self.soupChef.makeSoup(url, tz).find(class_="allres")
             dayResultContainers = soup.find_all(class_="results-sublist")
             soups.extend(dayResultContainers)
             daysSearched += len(dayResultContainers)
@@ -184,7 +184,7 @@ class Scraper:
             lastDayTitle = dayResultContainers[-1].find_next().getText()
             while daysSearched == maxDays:
                 url = self.urlBuilder.buildGetPastMatches(offset)
-                soup = self.soupChef.makeSoup(url)
+                soup = self.soupChef.makeSoup(url, tz)
                 dayResultContainers = soup.find_all(class_="results-sublist")
                 soups.append(dayResultContainers[0])
                 offset += 100

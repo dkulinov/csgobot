@@ -191,10 +191,10 @@ def past_matches_by_team_embed(team, past_matches: [MatchByTeam], author_name, a
         past_matches[0].team1Logo = "https://hltv.org" + past_matches[0].team1Logo
     embed.set_thumbnail(url=past_matches[0].team1Logo)
     for past_match in past_matches:
-        date = datetime.fromtimestamp(int(past_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime('%Y-%m-%d')
+        date = datetime.fromtimestamp(int(past_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime(
+            '%Y-%m-%d')
         embed.add_field(name=f'--- {date} ---',
-                        value=f'[{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}]({past_match.link}). '
-                              f'\nRun: !stats {past_match.link} for more details',
+                        value=f'[{past_match.team1Score} : {past_match.team2Score} vs {past_match.team2}]({past_match.link}). ',
                         inline=False)
     return embed
 
@@ -211,7 +211,8 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
         future_matches[0].team1Logo = "https://hltv.org" + future_matches[0].team1Logo
     embed.set_thumbnail(url=future_matches[0].team1Logo)
     for future_match in future_matches:
-        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime('%Y-%m-%d %I:%M %p')
+        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime(
+            '%Y-%m-%d %I:%M %p')
         embed.add_field(name=f'--- {date} ---', value=f'[vs {future_match.team2}]({future_match.link})', inline=False)
     return embed
 
@@ -221,7 +222,7 @@ def future_matches_by_team_embed(team, future_matches: [MatchByTeam], author_nam
 async def recent_matches(ctx, number=10, offset=0):
     recent_matches: [PastMatch] = scraper.getAllMatches(MatchContainers.past, numberPast=number, offset=offset)
     await ctx.send(
-        embed=recent_matches_embed(recent_matches[:number], offset, ctx.author.display_name, ctx.author.avatar_url))
+        embed=recent_matches_embed(f'Recent matches ({offset + 1}-{offset + len(recent_matches)}):', recent_matches[:number], offset, ctx.author.display_name, ctx.author.avatar_url))
 
 
 @recent_matches.error
@@ -235,16 +236,15 @@ async def recent_matches_error(ctx, error):
     await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
 
-def recent_matches_embed(recent_matches: [PastMatch], offset, author_name, author_icon):
-    embed = discord.Embed(title=f'Recent matches ({offset + 1}-{offset + len(recent_matches)}):',
+def recent_matches_embed(title, recent_matches: [PastMatch], offset, author_name, author_icon):
+    embed = discord.Embed(title=title,
                           url=urlBuilder.buildGetPastMatches(offset),
                           color=discord.Color.teal())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     for recent_match in recent_matches:
         embed.add_field(
             name=f'--- {recent_match.team1} vs {recent_match.team2} ---',
-            value=f'[{recent_match.team1} {recent_match.team1Score} : {recent_match.team2Score} {recent_match.team2}]({recent_match.link})'
-                  f'\nRun: !stats {recent_match.link} for more details',
+            value=f'[{recent_match.team1} {recent_match.team1Score} : {recent_match.team2Score} {recent_match.team2}]({recent_match.link})',
             inline=False)
     return embed
 
@@ -333,7 +333,8 @@ async def upcoming_matches(ctx, number=100, match_filter="none"):
         end = start + max_fields_per_embed
         batch_of_matches = future_matches[start:end]
         await ctx.send(
-            embed=upcoming_matches_embed(batch_of_matches, match_type, ctx.author.display_name, ctx.author.avatar_url, timezone))
+            embed=upcoming_matches_embed("Upcoming matches:", batch_of_matches, match_type, ctx.author.display_name,
+                                         ctx.author.avatar_url, timezone))
 
 
 @upcoming_matches.error
@@ -349,13 +350,15 @@ async def upcoming_matches_error(ctx, error):
     await ctx.send(embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
 
-def upcoming_matches_embed(future_matches: [FutureMatch], predefinedFilter, author_name, author_icon, author_timezone):
-    embed = discord.Embed(title='Upcoming matches:',
+def upcoming_matches_embed(title, future_matches: [FutureMatch], predefinedFilter, author_name, author_icon,
+                           author_timezone):
+    embed = discord.Embed(title=f'{title}',
                           url=urlBuilder.buildGetUpcomingMatchesUrl(predefinedFilter),
                           color=discord.Color.green())
     embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
     for future_match in future_matches:
-        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime('%Y-%m-%d %I:%M %p')
+        date = datetime.fromtimestamp(int(future_match.epochTime) // 1000, tz=pytz.timezone(author_timezone)).strftime(
+            '%Y-%m-%d %I:%M %p')
         if future_match.emptyMatchDescription is not None:
             embed.add_field(
                 name=f'--- {date} ---',
@@ -419,11 +422,30 @@ async def get_timezone_from_city(city):
         tz = await geolocator.reverse_timezone((location.latitude, location.longitude))
         return tz
 
+
 @bot.command(name="by_day",
-             help='Shows matches for a day. Date should be in mm/dd/yyyy format')
-async def by_day(ctx):
-    user_timezone = await db.get_by_id(str(ctx.author.id))
-    await ctx.send(embed=timezone_embed(user_timezone, ctx.author.display_name, ctx.author.avatar_url))
+             help='Shows matches for a day. Date should be in mm/dd/yyyy format. Can not go further than a week in the past.')
+async def by_day(ctx, date):
+    user_timezone = await db.get_by_id(ctx.author.id)
+    if user_timezone is not None:
+        timezone = user_timezone.timezone
+    else:
+        timezone = "America/Phoenix"
+    matches = scraper.getMatchesByDay(date, timezone)
+    if len(matches) < 1:
+        await ctx.send(embed=error_embed(f"No matches on {date}", ctx.author.display_name, ctx.author.avatar_url))
+        return
+    past_matches = list(filter(lambda match: type(match) == PastMatch, matches))
+    live_matches = list(filter(lambda match: type(match) == CurrentMatch, matches))
+    future_matches = list(filter(lambda match: type(match) == FutureMatch, matches))
+    if len(past_matches) > 0:
+        await ctx.send(embed=recent_matches_embed(f'Matches on {date}', past_matches, 0, ctx.author.display_name, ctx.author.avatar_url))
+    if len(live_matches) > 0:
+        await ctx.send(
+            embed=live_matches_embed(live_matches, MatchType.Default, ctx.author.display_name, ctx.author.avatar_url))
+    if len(future_matches) > 0:
+        await ctx.send(embed=upcoming_matches_embed(f'Matches on {date}', future_matches, MatchType.Default,
+                                                    ctx.author.display_name, ctx.author.avatar_url, timezone))
 
 
 @by_day.error
@@ -432,16 +454,10 @@ async def by_day_error(ctx, error):
     await ctx.send(
         embed=error_embed("Could not connect to DB. Please try again.", ctx.author.display_name, ctx.author.avatar_url))
 
-
-def timezone_embed(user_timezone, author_name, author_icon):
-    if user_timezone is None:
-        timezone = "not set. To set it, run !set_timezone [your_city]"
-    else:
-        timezone = user_timezone.timezone
-    embed = discord.Embed(title=f"Your timezone is {timezone}", color=discord.Color.green())
-    embed.set_author(name=f'hey {author_name}, here you go!', icon_url=author_icon)
-    return embed
-
-
+@bot.command(name="today", help="Shows today's matches")
+async def today(ctx):
+    today = "/".join([str(datetime.today().date().month), str(datetime.today().date().day), str(datetime.today().date().year)])
+    print(today)
+    await by_day(ctx, today)
 
 bot.run(TOKEN)

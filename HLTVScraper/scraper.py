@@ -73,7 +73,7 @@ class Scraper:
         if lookForDate < todayDate:
             matches = self._getPastMatchesByDay(lookForDate, tz)
         elif lookForDate == todayDate:
-            matches = self._getTodaysMatches(theSoup)
+            matches = self._getTodaysMatches(theSoup, tz)
         elif lookForDate > todayDate:
             matches = self._getFutureMatchesByDay(theSoup, lookForDate)
         return matches
@@ -134,7 +134,7 @@ class Scraper:
         if lookForDate < weekBeforeToday:
             raise ValueError("Cannot look up matches more than a week before today.")
 
-    def _validatePastMatchParams(self, numberPast: int, offset:int, containerType: MatchContainers):
+    def _validatePastMatchParams(self, numberPast: int, offset: int, containerType: MatchContainers):
         if MatchContainers.past == containerType and numberPast < 1:
             raise ValueError("Number of matches has to be positive")
         if MatchContainers.past == containerType and numberPast > 25:
@@ -147,9 +147,9 @@ class Scraper:
         correctMatchDay = self._getCorrectFutureMatchDay(theSoup, lookForDate)
         return self._getMatchesFromSoup(correctMatchDay, MatchContainers.future)
 
-    def _getTodaysMatches(self, theSoup: element.Tag) -> [Match]:
+    def _getTodaysMatches(self, theSoup: element.Tag, tz: str) -> [Match]:
         todayDate = datetime.today().date()
-        previousMatches = self._getPastMatchesByDay(todayDate)
+        previousMatches = self._getPastMatchesByDay(todayDate, tz)
         liveMatches = self.getAllMatches(MatchContainers.present, predefinedFilter=MatchType.Default)
         try:
             upcomingMatchesToday = self._getFutureMatchesByDay(theSoup, todayDate)
@@ -170,7 +170,7 @@ class Scraper:
         return correctMatchDay
 
     def _getPastMatchesByDay(self, lookForDate, tz: str) -> [PastMatch]:
-        maxDays = 7
+        maxDays = 8
         daysSearched = 0
         soups = []
         offset = 0
@@ -188,7 +188,8 @@ class Scraper:
                 dayResultContainers = soup.find_all(class_="results-sublist")
                 soups.append(dayResultContainers[0])
                 offset += 100
-                if dayResultContainers[-1].find_next().getText() != lastDayTitle:
+                newTitle = dayResultContainers[-1].find_next().getText()
+                if newTitle != lastDayTitle:
                     daysSearched += 1
         soupsToSearch = []
         for theSoup in soups:
@@ -219,7 +220,7 @@ class Scraper:
     def _mapFromResultDateToDate(self, title):
         dateFromTitle = title[12:]
         dateAsArray = dateFromTitle.split(" ")
-        dateAsArray[1] = dateAsArray[1][:2]
+        dateAsArray[1] = "".join(list(filter(lambda ch: ch.isnumeric(), dateAsArray[1])))
         theDateStr = dateAsArray[0] + " " + dateAsArray[1] + " " + dateAsArray[2]
         try:
             return datetime.strptime(theDateStr, "%B %d %Y").date()

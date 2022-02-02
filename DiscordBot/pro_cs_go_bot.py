@@ -57,7 +57,8 @@ intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 db = UserTimezoneDB()
 
-
+# TODO: https://discordpy.readthedocs.io/en/stable/ext/commands/cogs.html
+# TODO: https://stackoverflow.com/questions/50678419/how-to-make-multiple-files-python-bot
 # https://stackoverflow.com/questions/57182398/is-it-possible-to-attach-multiple-images-in-a-embed/57191891#:~:text=Yes%20and%20no.,shown%20separately%20from%20the%20embed.
 
 @bot.event
@@ -427,7 +428,7 @@ async def by_day(ctx, date):
     if len(matches) < 1:
         await ctx.send(embed=error_embed(f"No matches on {date}", ctx.author.display_name, ctx.author.avatar_url))
         return
-    past_matches = list(filter(lambda match: type(match) == PastMatch, matches))
+    past_matches = list(filter(lambda match: type(match) == PastMatch, matches))[::-1]
     live_matches = list(filter(lambda match: type(match) == CurrentMatch, matches))
     future_matches = list(filter(lambda match: type(match) == FutureMatch, matches))
     if len(past_matches) > 0:

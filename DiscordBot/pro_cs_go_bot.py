@@ -3,10 +3,7 @@ import math
 import os
 from datetime import datetime
 
-import aiosqlite
 import discord
-from aiosqlite import Cursor
-from discord import Member
 from discord.ext import commands
 from discord.ext.commands import MissingRequiredArgument, CommandInvokeError
 from dotenv import load_dotenv
@@ -18,11 +15,8 @@ from Commons.Types.Match.MatchByTeam import MatchByTeam
 from Commons.Types.Match.PastMatch import PastMatch
 from Commons.Types.MatchType import MatchType
 from Commons.Types.News import News
-from Commons.Types.SeriesStats.MatchStats import MatchStats
-from Commons.Types.SeriesStats.SeriesStats import SeriesStats
 from Commons.Types.Team import HLTVTeams
 from Commons.Types.TopTeam import TopTeam
-from DiscordBot.DB.UserTimezone import UserTimezone
 from DiscordBot.DB.db import UserTimezoneDB
 from HLTVScraper.HLTVConsts.MatchContainers import MatchContainers
 from HLTVScraper.HLTVConsts.MatchTime import MatchTime
@@ -65,7 +59,6 @@ db = UserTimezoneDB()
 
 
 # https://stackoverflow.com/questions/57182398/is-it-possible-to-attach-multiple-images-in-a-embed/57191891#:~:text=Yes%20and%20no.,shown%20separately%20from%20the%20embed.
-# await ctx.author.edit(nick =ctx.author.name + " [timezone]")
 
 @bot.event
 async def on_ready():
@@ -85,7 +78,6 @@ async def on_member_join(member):
 @bot.event
 async def on_command_error(ctx, error):
     pass
-
 
 @bot.command(name="top_teams",
              help="Shows HLTV's Top 25 Teams. You can also specify number of teams you want to see as a number (Between 1 and 25).")
@@ -450,14 +442,23 @@ async def by_day(ctx, date):
 
 @by_day.error
 async def by_day_error(ctx, error):
-    print(error)
+    if isinstance(error, CommandInvokeError) and isinstance(error.original, ValueError):
+        message = error.original
+    else:
+        message = "Could not connect to DB. Please try again."
     await ctx.send(
-        embed=error_embed("Could not connect to DB. Please try again.", ctx.author.display_name, ctx.author.avatar_url))
+        embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
 @bot.command(name="today", help="Shows today's matches")
 async def today(ctx):
     today = "/".join([str(datetime.today().date().month), str(datetime.today().date().day), str(datetime.today().date().year)])
     print(today)
     await by_day(ctx, today)
+
+@today.error
+async def today_error(ctx, error):
+    message = "Could not connect to DB. Please try again."
+    await ctx.send(
+        embed=error_embed(message, ctx.author.display_name, ctx.author.avatar_url))
 
 bot.run(TOKEN)

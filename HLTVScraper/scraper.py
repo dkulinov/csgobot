@@ -157,7 +157,7 @@ class Scraper:
             upcomingMatchesToday = []
         return liveMatches + upcomingMatchesToday + previousMatches
 
-    def _getCorrectFutureMatchDay(self, theSoup: element.Tag, lookForDate):
+    def _getCorrectFutureMatchDay(self, theSoup: element.Tag, lookForDate: datetime):
         matchDays = theSoup.find_all(class_="upcomingMatchesSection")
         correctMatchDay = None
         for matchDay in matchDays:
@@ -166,7 +166,7 @@ class Scraper:
                 correctMatchDay = matchDay
                 break
         if correctMatchDay is None:
-            raise ValueError("Could not find matches for ", lookForDate)
+            raise ValueError(f"There are no matches on {lookForDate.strftime('%m-%d-%Y')}")
         return correctMatchDay
 
     def _getPastMatchesByDay(self, lookForDate, tz: str) -> [PastMatch]:

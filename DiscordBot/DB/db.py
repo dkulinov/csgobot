@@ -42,3 +42,10 @@ class UserTimezoneDB:
             return await self._insert(user_id, timezone)
         else:
             return await self._update_by_id(user_id, timezone)
+
+    async def get_user_timezone_or_default(self, user_id: str):
+        user_timezone = await self.get_by_id(user_id)
+        if user_timezone is not None:
+            return user_timezone.timezone
+        else:
+            return "America/Phoenix"

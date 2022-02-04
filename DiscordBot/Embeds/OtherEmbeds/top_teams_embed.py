@@ -2,10 +2,11 @@ import discord
 
 from Commons.Types.TopTeam import TopTeam
 from DiscordBot.helpers import get_embed_author_title
+from HLTVScraper.Helpers.UrlBuilder import URLBuilder
 
 
 def top_teams_embed(teams: [TopTeam], author_name, author_icon):
-    embed = discord.Embed(title=f'HLTV Top {len(teams)} teams:', url=urlBuilder.buildGetTopTeamsUrl(),
+    embed = discord.Embed(title=f'HLTV Top {len(teams)} teams:', url=URLBuilder().buildGetTopTeamsUrl(),
                           color=discord.Color.gold())
     embed.set_author(name=get_embed_author_title(author_name), icon_url=author_icon)
     for rank, team in enumerate(teams):

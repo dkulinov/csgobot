@@ -32,6 +32,7 @@ class ProCsgoBot(commands.Bot):
 
     async def on_ready(self):
         await self.db.set_up_db()
+        print("DB is ready.")
         self.add_commands()
         print("I'm ready!")
 

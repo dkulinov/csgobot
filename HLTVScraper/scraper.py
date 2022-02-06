@@ -61,7 +61,7 @@ class Scraper:
             theSoup = theSoup.find(class_="match-table")
         return self._getMatchesFromSoup(theSoup, MatchContainers.byTeam)
 
-    # TODO: check if cookie can be set for timezone. (hltvTimeZone: tz)
+
     # https://stackoverflow.com/questions/3467114/how-are-cookies-passed-in-the-http-protocol#:~:text=Cookies%20are%20passed%20as%20HTTP,(server%20%2D%3E%20client).
     def getMatchesByDay(self, theDate: str, tz: str) -> [Match]:
         lookForDate = self._mapToDate(theDate, "%m/%d/%Y")
@@ -210,7 +210,7 @@ class Scraper:
 
     def getNews(self):
         url = self.urlBuilder.buildGetNewsUrl()
-        theSoup = self.soupChef.makeSoup(url)
+        theSoup = self.soupChef.makeSoupFast(url)
         news = []
         newsContainers = theSoup.find_all(class_="newsline article")
         for newsContainer in newsContainers:
@@ -230,11 +230,9 @@ class Scraper:
     # Team rankings
     def getTopTeams(self):
         url = self.urlBuilder.buildGetTopTeamsUrl()
-        theSoup = self.soupChef.makeSoup(url)
+        theSoup = self.soupChef.makeSoupFast(url)
         topTeams = []
         topTeamContainers = theSoup.find_all(class_="ranked-team")
         for topTeamContainer in topTeamContainers:
             topTeams.append(self.topTeamFactory.createTopTeam(topTeamContainer))
         return topTeams
-
-    # Tournaments
